@@ -26,6 +26,24 @@ def dilate_bw(image, kernel, flag):
     return new_image
 
 
+def dilate(image, kernel, flag):
+    if flag:
+        image = cv2.imread(image, 0)
+
+    m, n = kernel.shape
+    h, w = image.shape
+    new_image = np.zeros((h, w))
+    for i in range(h):
+        for j in range(w):
+            top = max(0, i-m//2)
+            bottom = min(h, i+m//2+1)
+            left = max(0, j-n//2)
+            right = min(w, j+n//2+1)
+            region = image[top:bottom, left:right]
+            new_image[i][j] = region.max()
+    return new_image
+
+
 def erosion_bw(image, kernel, flag):
 
     if flag:
@@ -44,6 +62,24 @@ def erosion_bw(image, kernel, flag):
             k = kernel[m // 2 - (i - top):m // 2 + (bottom - i), n // 2 - (j - left):n // 2 + (right - j)]
             if np.all((region == 255) & (k == 1)):
                 new_image[i][j] = 255
+    return new_image
+
+
+def erosion(image, kernel, flag):
+    if flag:
+        image = cv2.imread(image, 0)
+
+    m, n = kernel.shape
+    h, w = image.shape
+    new_image = np.zeros((h, w))
+    for i in range(h):
+        for j in range(w):
+            top = max(0, i - m // 2)
+            bottom = min(h, i + m // 2 + 1)
+            left = max(0, j - n // 2)
+            right = min(w, j + n // 2 + 1)
+            region = image[top:bottom, left:right]
+            new_image[i][j] = region.min()
     return new_image
 
 
@@ -90,6 +126,7 @@ cv2.imwrite("laplaciano.png", laplaciano(input_path, kernel))
 cv2.imwrite("top_hat.png", top_hat(input_path, kernel))
 cv2.imwrite("bottom_hat.png", bottom_hat(input_path, kernel))"""
 
+"""
 myMap = {}
 myMap["dilatazione"] = dilate_bw(input_path, kernel, True)
 myMap["erosione"] = erosion_bw(input_path, kernel, True)
@@ -120,3 +157,4 @@ for ax in axs.flat[num_images:]:
 
 plt.tight_layout()
 plt.show()
+"""
