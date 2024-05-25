@@ -5,7 +5,7 @@ import cv2
 import matplotlib.pyplot as plt
 
 
-def dilate_bw(image, kernel, is_path, is_bw):
+def dilate(image, kernel, is_path, is_bw):
     if is_path:
         image = cv2.imread(image, 0)
 
@@ -28,7 +28,7 @@ def dilate_bw(image, kernel, is_path, is_bw):
     return new_image
 
 
-def erosion_bw(image, kernel, is_path, is_bw):
+def erosion(image, kernel, is_path, is_bw):
     if is_path:
         image = cv2.imread(image, 0)
 
@@ -53,22 +53,22 @@ def erosion_bw(image, kernel, is_path, is_bw):
 
 def apertura(image_path, kernel, is_bw):
     image = cv2.imread(image_path, 0)
-    return dilate_bw(erosion_bw(image, kernel, False, is_bw), kernel, False, is_bw)
+    return dilate(erosion(image, kernel, False, is_bw), kernel, False, is_bw)
 
 
 def chiusura(image_path, kernel, is_bw):
     image = cv2.imread(image_path, 0)
-    return erosion_bw(dilate_bw(image, kernel, False, is_bw), kernel, False, is_bw)
+    return erosion(dilate(image, kernel, False, is_bw), kernel, False, is_bw)
 
 
 def estrazione_contorni(image_path, kernel, is_bw):
     image = cv2.imread(image_path, 0)
-    return dilate_bw(image, kernel, False, is_bw) - erosion_bw(image, kernel, False, is_bw)
+    return dilate(image, kernel, False, is_bw) - erosion(image, kernel, False, is_bw)
 
 
 def laplaciano(image_path, kernel, is_bw):
     image = cv2.imread(image_path, 0)
-    return dilate_bw(image, kernel, False, is_bw) - erosion_bw(image, kernel, False, is_bw) - 2*image
+    return dilate(image, kernel, False, is_bw) - erosion(image, kernel, False, is_bw) - 2*image
 
 
 def top_hat(image_path, kernel, is_bw):
@@ -96,8 +96,8 @@ cv2.imwrite("bottom_hat.png", bottom_hat(input_path, kernel))"""
 
 
 myMap = {}
-myMap["dilatazione"] = dilate_bw(input_path, kernel, True, True)
-myMap["erosione"] = erosion_bw(input_path, kernel, True, True)
+myMap["dilatazione"] = dilate(input_path, kernel, True, True)
+myMap["erosione"] = erosion(input_path, kernel, True, True)
 myMap["apertura"] = apertura(input_path, kernel, True)
 myMap["chiusura"] = chiusura(input_path, kernel, True)
 myMap["estrazione_contorni"] = estrazione_contorni(input_path, kernel, True)
