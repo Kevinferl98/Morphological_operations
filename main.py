@@ -70,7 +70,7 @@ def erode(image, structuring_element, is_path, type_of_image):
             region = image[top:bottom, left:right]
             k = structuring_element[m // 2 - (i - top):m // 2 + (bottom - i), n // 2 - (j - left):n // 2 + (right - j)]
             if type_of_image == ImageType.BLACK_AND_WHITE:
-                if np.all((region == 255) & (k == 1)):
+                if np.all(region[k == 1] == 255):
                     new_image[i][j] = 255
             else:
                 new_image[i][j] = np.min(region[k == 1])
