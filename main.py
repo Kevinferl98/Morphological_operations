@@ -1,8 +1,5 @@
-import math
-
 import numpy as np
 import cv2
-import matplotlib.pyplot as plt
 from PIL import Image
 from enum import Enum
 
@@ -16,15 +13,11 @@ class ImageType(Enum):
 
 def dilate(image, structuring_element, is_path, type_of_image):
     if is_path:
-        image = cv2.imread(image, 1 if type_of_image == ImageType.COLOR else 0)
+        image = cv2.imread(image, 0)
 
     m, n = structuring_element.shape
-    if type_of_image == ImageType.COLOR:
-        h, w, c = image.shape
-        new_image = np.zeros((h, w, 3), dtype=np.uint8)
-    else:
-        h, w = image.shape
-        new_image = np.zeros((h, w))
+    h, w = image.shape
+    new_image = np.zeros((h, w))
     for i in range(h):
         for j in range(w):
             top = max(0, i-m//2)
@@ -32,30 +25,42 @@ def dilate(image, structuring_element, is_path, type_of_image):
             left = max(0, j-n//2)
             right = min(w, j+n//2+1)
             region = image[top:bottom, left:right]
+            k = structuring_element[m // 2 - (i - top):m // 2 + (bottom - i), n // 2 - (j - left):n // 2 + (right - j)]
             if type_of_image == ImageType.BLACK_AND_WHITE:
-                k = structuring_element[m // 2 - (i - top):m // 2 + (bottom - i), n // 2 - (j - left):n // 2 + (right - j)]
                 if np.any((region == 255) & (k == 1)):
                     new_image[i][j] = 255
-            elif type_of_image == ImageType.GREY_SCALE:
-                new_image[i][j] = region.max()
             else:
-                new_image[i][j][0] = np.max(region[:, :, 0])
-                new_image[i][j][1] = np.max(region[:, :, 1])
-                new_image[i][j][2] = np.max(region[:, :, 2])
+                new_image[i][j] = np.max(region[k == 1])
     return new_image
 
 
-def erosion(image, structuring_element, is_path, type_of_image):
+def dilate_color(image, structuring_element, is_path):
     if is_path:
-        image = cv2.imread(image, 1 if type_of_image == ImageType.COLOR else 0)
+        image = cv2.imread(image, 1)
 
     m, n = structuring_element.shape
-    if type_of_image == ImageType.COLOR:
-        h, w, c = image.shape
-        new_image = np.zeros((h, w, 3), dtype=np.uint8)
-    else:
-        h, w = image.shape
-        new_image = np.zeros((h, w))
+    height, width, channel = image.shape
+    new_image = np.zeros((height, width, 3), dtype=np.uint8)
+    for ch in range(channel):
+        for i in range(height):
+            for j in range(width):
+                top = max(0, i -m // 2)
+                bottom = min(height, i + m // 2 + 1)
+                left = max(0, j - n // 2)
+                right = min(width, j + n // 2 + 1)
+                region = image[top:bottom, left:right, ch]
+                k = structuring_element[m // 2 - (i - top):m // 2 + (bottom - i), n // 2 - (j - left):n // 2 + (right - j)]
+                new_image[i][j][ch] = np.max(region[k == 1])
+    return new_image
+
+
+def erode(image, structuring_element, is_path, type_of_image):
+    if is_path:
+        image = cv2.imread(image, 0)
+
+    m, n = structuring_element.shape
+    h, w = image.shape
+    new_image = np.zeros((h, w))
     for i in range(h):
         for j in range(w):
             top = max(0, i - m // 2)
@@ -63,32 +68,48 @@ def erosion(image, structuring_element, is_path, type_of_image):
             left = max(0, j - n // 2)
             right = min(w, j + n // 2 + 1)
             region = image[top:bottom, left:right]
+            k = structuring_element[m // 2 - (i - top):m // 2 + (bottom - i), n // 2 - (j - left):n // 2 + (right - j)]
             if type_of_image == ImageType.BLACK_AND_WHITE:
-                k = structuring_element[m // 2 - (i - top):m // 2 + (bottom - i), n // 2 - (j - left):n // 2 + (right - j)]
                 if np.all((region == 255) & (k == 1)):
                     new_image[i][j] = 255
-            elif type_of_image == ImageType.GREY_SCALE:
-                new_image[i][j] = region.min()
             else:
-                new_image[i][j][0] = np.min(region[:, :, 0])
-                new_image[i][j][1] = np.min(region[:, :, 1])
-                new_image[i][j][2] = np.min(region[:, :, 2])
+                new_image[i][j] = np.min(region[k == 1])
+    return new_image
+
+
+def erode_color(image, structuring_element, is_path):
+    if is_path:
+        image = cv2.imread(image, 1)
+
+    m, n = structuring_element.shape
+    height, width, channel = image.shape
+    new_image = np.zeros((height, width, 3), dtype=np.uint8)
+    for ch in range(channel):
+        for i in range(height):
+            for j in range(width):
+                top = max(0, i -m // 2)
+                bottom = min(height, i + m // 2 + 1)
+                left = max(0, j - n // 2)
+                right = min(width, j + n // 2 + 1)
+                region = image[top:bottom, left:right, ch]
+                k = structuring_element[m // 2 - (i - top):m // 2 + (bottom - i), n // 2 - (j - left):n // 2 + (right - j)]
+                new_image[i][j][ch] = np.min(region[k == 1])
     return new_image
 
 
 def apertura(image_path, structuring_element, type_of_image):
     image = cv2.imread(image_path, 1 if type_of_image == ImageType.COLOR else 0)
-    return dilate(erosion(image, structuring_element, False, type_of_image), structuring_element, False, type_of_image)
+    return dilate(erode(image, structuring_element, False, type_of_image), structuring_element, False, type_of_image)
 
 
 def chiusura(image_path, structuring_element, type_of_image):
     image = cv2.imread(image_path, 1 if type_of_image == ImageType.COLOR else 0)
-    return erosion(dilate(image, structuring_element, False, type_of_image), structuring_element, False, type_of_image)
+    return erode(dilate(image, structuring_element, False, type_of_image), structuring_element, False, type_of_image)
 
 
 def estrazione_contorni(image_path, structuring_element, type_of_image):
     image = cv2.imread(image_path, 1 if type_of_image == ImageType.COLOR else 0)
-    return dilate(image, structuring_element, False, type_of_image) - erosion(image, structuring_element, False, type_of_image)
+    return dilate(image, structuring_element, False, type_of_image) - erode(image, structuring_element, False, type_of_image)
 
 
 def top_hat(image_path, structuring_element, type_of_image):
@@ -126,44 +147,10 @@ def is_color_or_undefined(type_of_image) :
     return False
 
 
-def execute(input_path, structuring_element):
-    type_of_image = classify_image(input_path)
-    if is_color_or_undefined(type_of_image):
-        print('Error')
-        return
-    print('tipo di immagine: ', type_of_image)
-    myMap = {}
-    myMap["originale"] = cv2.imread(input_path, 0)
-    myMap["dilatazione"] = dilate(input_path, structuring_element, True, type_of_image)
-    myMap["erosione"] = erosion(input_path, structuring_element, True, type_of_image)
-    myMap["apertura"] = apertura(input_path, structuring_element, type_of_image)
-    myMap["chiusura"] = chiusura(input_path, structuring_element, type_of_image)
-    myMap["estrazione_contorni"] = estrazione_contorni(input_path, structuring_element, type_of_image)
-    myMap["top_hat"] = top_hat(input_path, structuring_element, type_of_image)
-    myMap["bottom_hat"] = bottom_hat(input_path, structuring_element, type_of_image)
-
-    num_images = len(myMap)
-    num_cols = 3
-    num_rows = math.ceil(num_images / num_cols)
-
-    fig, axs = plt.subplots(num_rows, num_cols, figsize=(8, 8))
-
-    if num_rows == 1:
-        axs = axs.reshape(1, -1)
-    elif num_cols == 1:
-        axs = axs.reshape(-1, 1)
-
-    for ax, (titolo, immagine) in zip(axs.flat, myMap.items()):
-        ax.imshow(immagine, cmap='gray')
-        ax.set_title(titolo)
-
-    for ax in axs.flat[num_images:]:
-        ax.axis('off')
-
-    plt.tight_layout()
-    plt.show()
-
-
 structuring_element = np.ones((3, 3), np.uint8)
-input_path = "lena_c.png"
-execute(input_path, structuring_element)
+str2 = np.array([
+    [0, 1, 0],
+    [0, 1, 0],
+    [0, 1, 0]
+], dtype=np.uint8)
+input_path = "lena_bw.png"
