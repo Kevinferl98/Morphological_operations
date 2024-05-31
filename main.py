@@ -14,11 +14,11 @@ class ImageType(Enum):
     UNDEFINED = 4
 
 
-def dilate(image, kernel, is_path, type_of_image):
+def dilate(image, structuring_element, is_path, type_of_image):
     if is_path:
         image = cv2.imread(image, 0)
 
-    m, n = kernel.shape
+    m, n = structuring_element.shape
     h, w = image.shape
     new_image = np.zeros((h, w))
     for i in range(h):
@@ -29,7 +29,7 @@ def dilate(image, kernel, is_path, type_of_image):
             right = min(w, j+n//2+1)
             region = image[top:bottom, left:right]
             if type_of_image == ImageType.BLACK_AND_WHITE:
-                k = kernel[m // 2 - (i - top):m // 2 + (bottom - i), n // 2 - (j - left):n // 2 + (right - j)]
+                k = structuring_element[m // 2 - (i - top):m // 2 + (bottom - i), n // 2 - (j - left):n // 2 + (right - j)]
                 if np.any((region == 255) & (k == 1)):
                     new_image[i][j] = 255
             else:
@@ -37,11 +37,11 @@ def dilate(image, kernel, is_path, type_of_image):
     return new_image
 
 
-def erosion(image, kernel, is_path, type_of_image):
+def erosion(image, structuring_element, is_path, type_of_image):
     if is_path:
         image = cv2.imread(image, 0)
 
-    m, n = kernel.shape
+    m, n = structuring_element.shape
     h, w = image.shape
     new_image = np.zeros((h, w))
     for i in range(h):
@@ -52,7 +52,7 @@ def erosion(image, kernel, is_path, type_of_image):
             right = min(w, j + n // 2 + 1)
             region = image[top:bottom, left:right]
             if type_of_image == ImageType.BLACK_AND_WHITE:
-                k = kernel[m // 2 - (i - top):m // 2 + (bottom - i), n // 2 - (j - left):n // 2 + (right - j)]
+                k = structuring_element[m // 2 - (i - top):m // 2 + (bottom - i), n // 2 - (j - left):n // 2 + (right - j)]
                 if np.all((region == 255) & (k == 1)):
                     new_image[i][j] = 255
             else:
@@ -60,29 +60,29 @@ def erosion(image, kernel, is_path, type_of_image):
     return new_image
 
 
-def apertura(image_path, kernel, type_of_image):
+def apertura(image_path, structuring_element, type_of_image):
     image = cv2.imread(image_path, 0)
-    return dilate(erosion(image, kernel, False, type_of_image), kernel, False, type_of_image)
+    return dilate(erosion(image, structuring_element, False, type_of_image), structuring_element, False, type_of_image)
 
 
-def chiusura(image_path, kernel, type_of_image):
+def chiusura(image_path, structuring_element, type_of_image):
     image = cv2.imread(image_path, 0)
-    return erosion(dilate(image, kernel, False, type_of_image), kernel, False, type_of_image)
+    return erosion(dilate(image, structuring_element, False, type_of_image), structuring_element, False, type_of_image)
 
 
-def estrazione_contorni(image_path, kernel, type_of_image):
+def estrazione_contorni(image_path, structuring_element, type_of_image):
     image = cv2.imread(image_path, 0)
-    return dilate(image, kernel, False, type_of_image) - erosion(image, kernel, False, type_of_image)
+    return dilate(image, structuring_element, False, type_of_image) - erosion(image, structuring_element, False, type_of_image)
 
 
-def top_hat(image_path, kernel, type_of_image):
+def top_hat(image_path, structuring_element, type_of_image):
     image = cv2.imread(image_path, 0)
-    return image - apertura(image_path, kernel, type_of_image)
+    return image - apertura(image_path, structuring_element, type_of_image)
 
 
-def bottom_hat(image_path, kernel, type_of_image):
+def bottom_hat(image_path, structuring_element, type_of_image):
     image = cv2.imread(image_path, 0)
-    return chiusura(image_path, kernel, type_of_image) - image
+    return chiusura(image_path, structuring_element, type_of_image) - image
 
 
 def classify_image(image_path):
@@ -110,7 +110,7 @@ def is_color_or_undefined(type_of_image) :
     return False
 
 
-def execute(input_path, kernel):
+def execute(input_path, structuring_element):
     type_of_image = classify_image(input_path)
     if is_color_or_undefined(type_of_image):
         print('Passare un\'immagine in bianco e nero o a scala di grigi')
@@ -118,13 +118,13 @@ def execute(input_path, kernel):
     print('tipo di immagine: ', type_of_image)
     myMap = {}
     myMap["originale"] = cv2.imread(input_path, 0)
-    myMap["dilatazione"] = dilate(input_path, kernel, True, type_of_image)
-    myMap["erosione"] = erosion(input_path, kernel, True, type_of_image)
-    myMap["apertura"] = apertura(input_path, kernel, type_of_image)
-    myMap["chiusura"] = chiusura(input_path, kernel, type_of_image)
-    myMap["estrazione_contorni"] = estrazione_contorni(input_path, kernel, type_of_image)
-    myMap["top_hat"] = top_hat(input_path, kernel, type_of_image)
-    myMap["bottom_hat"] = bottom_hat(input_path, kernel, type_of_image)
+    myMap["dilatazione"] = dilate(input_path, structuring_element, True, type_of_image)
+    myMap["erosione"] = erosion(input_path, structuring_element, True, type_of_image)
+    myMap["apertura"] = apertura(input_path, structuring_element, type_of_image)
+    myMap["chiusura"] = chiusura(input_path, structuring_element, type_of_image)
+    myMap["estrazione_contorni"] = estrazione_contorni(input_path, structuring_element, type_of_image)
+    myMap["top_hat"] = top_hat(input_path, structuring_element, type_of_image)
+    myMap["bottom_hat"] = bottom_hat(input_path, structuring_element, type_of_image)
 
     num_images = len(myMap)
     num_cols = 3
@@ -148,6 +148,6 @@ def execute(input_path, kernel):
     plt.show()
 
 
-kernel = np.ones((3, 3), np.uint8)
+structuring_element = np.ones((3, 3), np.uint8)
 input_path = "lena_bw.png"
-execute(input_path, kernel)
+execute(input_path, structuring_element)
