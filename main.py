@@ -16,11 +16,15 @@ class ImageType(Enum):
 
 def dilate(image, structuring_element, is_path, type_of_image):
     if is_path:
-        image = cv2.imread(image, 0)
+        image = cv2.imread(image, 1 if type_of_image == ImageType.COLOR else 0)
 
     m, n = structuring_element.shape
-    h, w = image.shape
-    new_image = np.zeros((h, w))
+    if type_of_image == ImageType.COLOR:
+        h, w, c = image.shape
+        new_image = np.zeros((h, w, 3), dtype=np.uint8)
+    else:
+        h, w = image.shape
+        new_image = np.zeros((h, w))
     for i in range(h):
         for j in range(w):
             top = max(0, i-m//2)
@@ -32,18 +36,26 @@ def dilate(image, structuring_element, is_path, type_of_image):
                 k = structuring_element[m // 2 - (i - top):m // 2 + (bottom - i), n // 2 - (j - left):n // 2 + (right - j)]
                 if np.any((region == 255) & (k == 1)):
                     new_image[i][j] = 255
-            else:
+            elif type_of_image == ImageType.GREY_SCALE:
                 new_image[i][j] = region.max()
+            else:
+                new_image[i][j][0] = np.max(region[:, :, 0])
+                new_image[i][j][1] = np.max(region[:, :, 1])
+                new_image[i][j][2] = np.max(region[:, :, 2])
     return new_image
 
 
 def erosion(image, structuring_element, is_path, type_of_image):
     if is_path:
-        image = cv2.imread(image, 0)
+        image = cv2.imread(image, 1 if type_of_image == ImageType.COLOR else 0)
 
     m, n = structuring_element.shape
-    h, w = image.shape
-    new_image = np.zeros((h, w))
+    if type_of_image == ImageType.COLOR:
+        h, w, c = image.shape
+        new_image = np.zeros((h, w, 3), dtype=np.uint8)
+    else:
+        h, w = image.shape
+        new_image = np.zeros((h, w))
     for i in range(h):
         for j in range(w):
             top = max(0, i - m // 2)
@@ -55,33 +67,37 @@ def erosion(image, structuring_element, is_path, type_of_image):
                 k = structuring_element[m // 2 - (i - top):m // 2 + (bottom - i), n // 2 - (j - left):n // 2 + (right - j)]
                 if np.all((region == 255) & (k == 1)):
                     new_image[i][j] = 255
-            else:
+            elif type_of_image == ImageType.GREY_SCALE:
                 new_image[i][j] = region.min()
+            else:
+                new_image[i][j][0] = np.min(region[:, :, 0])
+                new_image[i][j][1] = np.min(region[:, :, 1])
+                new_image[i][j][2] = np.min(region[:, :, 2])
     return new_image
 
 
 def apertura(image_path, structuring_element, type_of_image):
-    image = cv2.imread(image_path, 0)
+    image = cv2.imread(image_path, 1 if type_of_image == ImageType.COLOR else 0)
     return dilate(erosion(image, structuring_element, False, type_of_image), structuring_element, False, type_of_image)
 
 
 def chiusura(image_path, structuring_element, type_of_image):
-    image = cv2.imread(image_path, 0)
+    image = cv2.imread(image_path, 1 if type_of_image == ImageType.COLOR else 0)
     return erosion(dilate(image, structuring_element, False, type_of_image), structuring_element, False, type_of_image)
 
 
 def estrazione_contorni(image_path, structuring_element, type_of_image):
-    image = cv2.imread(image_path, 0)
+    image = cv2.imread(image_path, 1 if type_of_image == ImageType.COLOR else 0)
     return dilate(image, structuring_element, False, type_of_image) - erosion(image, structuring_element, False, type_of_image)
 
 
 def top_hat(image_path, structuring_element, type_of_image):
-    image = cv2.imread(image_path, 0)
+    image = cv2.imread(image_path, 1 if type_of_image == ImageType.COLOR else 0)
     return image - apertura(image_path, structuring_element, type_of_image)
 
 
 def bottom_hat(image_path, structuring_element, type_of_image):
-    image = cv2.imread(image_path, 0)
+    image = cv2.imread(image_path, 1 if type_of_image == ImageType.COLOR else 0)
     return chiusura(image_path, structuring_element, type_of_image) - image
 
 
@@ -105,7 +121,7 @@ def classify_image(image_path):
 
 
 def is_color_or_undefined(type_of_image) :
-    if type_of_image == ImageType.COLOR or type_of_image == ImageType.UNDEFINED:
+    if type_of_image == ImageType.UNDEFINED:
         return True
     return False
 
@@ -113,7 +129,7 @@ def is_color_or_undefined(type_of_image) :
 def execute(input_path, structuring_element):
     type_of_image = classify_image(input_path)
     if is_color_or_undefined(type_of_image):
-        print('Passare un\'immagine in bianco e nero o a scala di grigi')
+        print('Error')
         return
     print('tipo di immagine: ', type_of_image)
     myMap = {}
@@ -149,5 +165,5 @@ def execute(input_path, structuring_element):
 
 
 structuring_element = np.ones((3, 3), np.uint8)
-input_path = "lena_bw.png"
+input_path = "lena_c.png"
 execute(input_path, structuring_element)
