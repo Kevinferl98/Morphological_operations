@@ -75,11 +75,6 @@ def estrazione_contorni(image_path, kernel, type_of_image):
     return dilate(image, kernel, False, type_of_image) - erosion(image, kernel, False, type_of_image)
 
 
-def laplaciano(image_path, kernel, type_of_image):
-    image = cv2.imread(image_path, 0)
-    return dilate(image, kernel, False, type_of_image) - erosion(image, kernel, False, type_of_image) - 2*image
-
-
 def top_hat(image_path, kernel, type_of_image):
     image = cv2.imread(image_path, 0)
     return image - apertura(image_path, kernel, type_of_image)
@@ -122,12 +117,12 @@ def execute(input_path, kernel):
         return
     print('tipo di immagine: ', type_of_image)
     myMap = {}
+    myMap["originale"] = cv2.imread(input_path, 0)
     myMap["dilatazione"] = dilate(input_path, kernel, True, type_of_image)
     myMap["erosione"] = erosion(input_path, kernel, True, type_of_image)
     myMap["apertura"] = apertura(input_path, kernel, type_of_image)
     myMap["chiusura"] = chiusura(input_path, kernel, type_of_image)
     myMap["estrazione_contorni"] = estrazione_contorni(input_path, kernel, type_of_image)
-    myMap["laplaciano"] = laplaciano(input_path, kernel, type_of_image)
     myMap["top_hat"] = top_hat(input_path, kernel, type_of_image)
     myMap["bottom_hat"] = bottom_hat(input_path, kernel, type_of_image)
 
