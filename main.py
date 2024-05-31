@@ -99,16 +99,22 @@ def erode_color(image, structuring_element, is_path):
 
 def apertura(image_path, structuring_element, type_of_image):
     image = cv2.imread(image_path, 1 if type_of_image == ImageType.COLOR else 0)
+    if type_of_image == ImageType.COLOR:
+        return dilate_color(erode_color(image, structuring_element, False), structuring_element, False)
     return dilate(erode(image, structuring_element, False, type_of_image), structuring_element, False, type_of_image)
 
 
 def chiusura(image_path, structuring_element, type_of_image):
     image = cv2.imread(image_path, 1 if type_of_image == ImageType.COLOR else 0)
+    if type_of_image == ImageType.COLOR:
+        return erode_color(dilate_color(image, structuring_element, False), structuring_element, False)
     return erode(dilate(image, structuring_element, False, type_of_image), structuring_element, False, type_of_image)
 
 
 def estrazione_contorni(image_path, structuring_element, type_of_image):
     image = cv2.imread(image_path, 1 if type_of_image == ImageType.COLOR else 0)
+    if type_of_image == ImageType.COLOR:
+        return dilate_color(image, structuring_element, False) - erode_color(image, structuring_element, False)
     return dilate(image, structuring_element, False, type_of_image) - erode(image, structuring_element, False, type_of_image)
 
 
