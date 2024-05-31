@@ -159,4 +159,3 @@ str2 = np.array([
     [0, 1, 0],
     [0, 1, 0]
 ], dtype=np.uint8)
-input_path = "lena_bw.png"
