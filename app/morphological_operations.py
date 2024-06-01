@@ -183,19 +183,34 @@ def create_structuring_element(structuring_element_type, size):
 def execute_operation(operation_type, structuring_element, file_path, image_type):
     if operation_type == OperationType.DILATE.value:
         if image_type == ImageType.COLOR:
-            return dilate_color(file_path, structuring_element, True)
-        return dilate(file_path, structuring_element, True, image_type)
+            res = dilate_color(file_path, structuring_element, True)
+        else:
+            res = dilate(file_path, structuring_element, True, image_type)
     elif operation_type == OperationType.ERODE.value:
         if image_type == ImageType.COLOR:
-            return erode_color(file_path, structuring_element, True)
-        return erode(file_path, structuring_element, True, image_type)
+            res = erode_color(file_path, structuring_element, True)
+        else:
+            res = erode(file_path, structuring_element, True, image_type)
     elif operation_type == OperationType.APERTURA.value:
-        return apertura(file_path, structuring_element, image_type)
+        res = apertura(file_path, structuring_element, image_type)
     elif operation_type == OperationType.CHIUSURA.value:
-        return chiusura(file_path, structuring_element, image_type)
+        res = chiusura(file_path, structuring_element, image_type)
     elif operation_type == OperationType.CONTORNI.value:
-        return estrazione_contorni(file_path, structuring_element, image_type)
+        res = estrazione_contorni(file_path, structuring_element, image_type)
     elif operation_type == OperationType.TOP_HAT.value:
-        return top_hat(file_path, structuring_element, image_type)
+        res = top_hat(file_path, structuring_element, image_type)
     elif operation_type == OperationType.BOTTOM_HAT.value:
-        return bottom_hat(file_path, structuring_element, image_type)
+        res = bottom_hat(file_path, structuring_element, image_type)
+    
+    if image_type == ImageType.COLOR:
+        return convert_bgr_to_rgb(res)
+    return res
+    
+
+def convert_bgr_to_rgb(bgr_image):
+    rgb_image = np.zeros_like(bgr_image)
+    rgb_image[:, :, 0] = bgr_image[:, :, 2]
+    rgb_image[:, :, 1] = bgr_image[:, :, 1]
+    rgb_image[:, :, 2] = bgr_image[:, :, 0]
+
+    return rgb_image
