@@ -3,7 +3,6 @@ from app import app
 from app import morphological_operations
 import os
 from werkzeug.utils import secure_filename
-import numpy as np
 import base64
 from PIL import Image
 import io
@@ -24,18 +23,21 @@ def process_image():
     if file.filename == '':
         return 'Nessun file selezionatoo per il caricamento', 400
     if file:
+        forma = request.form['forma']
+        sizeX = int(request.form['dimensioneX'])
+        sizeY = int(request.form['dimensioneY'])
+        operation = request.form['operation']
         filename = secure_filename(file.filename)
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
         image_type = morphological_operations.classify_image(file_path)
 
-        if morphological_operations.is_color_or_undefined(image_type):
+        if morphological_operations.is_undefined(image_type):
             os.remove(file_path)
-            return 'Mandare un\'immagine in bianco e nero o a scala di grigi', 400
+            return 'Tipo di immagine non riconosciuto', 400
 
-        print(image_type)
-        kernel = np.ones((3, 3), np.uint8)
-        res_image = morphological_operations.erode(file_path, kernel, True, image_type)
+        structuring_element = morphological_operations.create_structuring_element(forma, (sizeX, sizeY))
+        res_image = morphological_operations.execute_operation(operation, structuring_element, file_path, image_type)
 
         image = Image.fromarray(res_image.astype('uint8')).convert('RGB')
         img_byte_arr = io.BytesIO()

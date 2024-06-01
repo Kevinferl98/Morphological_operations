@@ -8,9 +8,29 @@
 </head>
 <body>
     <h2>Carica un'immagine</h2>
-    <form id="myForm" action="/action_page.php">
+    <form id="myForm">
         <input type="file" id="myFile" name="image", onchange="previewFile()">
         <img id="preview" src="" height="200" alt="Image preview...">
+        <label for="operation">Operazione da eseguire:</label>
+        <select id="operation" name="operation">
+            <option value="dilate">Dilatazione</option>
+            <option value="erode">Erosione</option>
+            <option value="opening">Apertura</option>
+            <option value="closing">Chiusura</option>
+            <option value="contorni">Estrazione contorni</option>
+            <option value="top_hat">Top hat</option>
+            <option value="bottom_hat">Bottom hat</option>
+        </select>
+        <label for="forma">Forma:</label>
+        <select id="forma" name="forma">
+            <option value="rect">Rettangolo</option>
+            <option value="ellipse">Ellisse</option>
+            <option value="cross">Croce</option>
+        </select>
+        <label for="dimensioneX">Dimensione X:</label>
+        <input type="number" id="dimensioneX" name="dimensioneX" min="1">
+        <label for="dimensioneX">Dimensione Y:</label>
+        <input type="number" id="dimensioneY" name="dimensioneY" min="1">
         <input type="button" value="Invia Richiesta" onclick="submitForm()">
     </form>
     <img id="result" src="" height="200" alt="Result image...">
