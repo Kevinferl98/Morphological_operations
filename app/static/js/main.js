@@ -15,8 +15,15 @@ function previewFile() {
 }
 
 function submitForm() {
-    var form = document.getElementById('myForm');
-    var formData = new FormData(form)
+  var formData = new FormData()
+    var dimensioniElementoStrutturante = document.getElementById('dimensioni').value;
+    var [x, y] = dimensioniElementoStrutturante.split('x').map(Number);
+
+    formData.append('image', document.getElementById('myFile').files[0]);
+    formData.append('operation', document.getElementById('operation').value);
+    formData.append('forma', document.getElementById('forma').value);
+    formData.append('dimensioneX', x);
+    formData.append('dimensioneY', y);
 
     if(!checkData())
         return
@@ -37,8 +44,6 @@ function submitForm() {
 
 function checkData() {
     var forma = document.getElementById('forma').value;
-    var dimensioneX = document.getElementById('dimensioneX').value;
-    var dimensioneY = document.getElementById('dimensioneY').value;
     var fileInput = document.getElementById('myFile');
 
     if(fileInput.files.length === 0) {
@@ -49,21 +54,6 @@ function checkData() {
     if(forma === '') {
         alert('Per favore, seleziona una forma.');
         return false;
-    }
-
-    if(dimensioneX === '' || dimensioneY === '') {
-        alert('Per favore, inserisci le dimensioni.');
-        return false;
-    }
-
-    if(isNaN(dimensioneX) || isNaN(dimensioneY) || dimensioneX <= 0 || dimensioneY <= 0) {
-        alert('Le dimensioni devono essere numeri positivi.');
-        return false;
-    }
-
-    if(dimensioneX%2 == 0 || dimensioneY%2 == 0) {
-        alert('Le dimensioni devono essere numeri dispari')
-        return false
     }
 
     return true

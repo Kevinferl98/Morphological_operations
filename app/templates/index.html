@@ -1,39 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <h2>Carica un'immagine</h2>
-    <form id="myForm">
-        <input type="file" id="myFile" name="image", onchange="previewFile()">
+  <div class="container">
+    <div class="content-boxes">
+      <div class="box">
         <img id="preview" src="" height="200" alt="Image preview...">
-        <label for="operation">Operazione da eseguire:</label>
-        <select id="operation" name="operation">
-            <option value="dilate">Dilatazione</option>
-            <option value="erode">Erosione</option>
-            <option value="opening">Apertura</option>
-            <option value="closing">Chiusura</option>
-            <option value="contorni">Estrazione contorni</option>
-            <option value="top_hat">Top hat</option>
-            <option value="bottom_hat">Bottom hat</option>
-        </select>
-        <label for="forma">Forma:</label>
-        <select id="forma" name="forma">
-            <option value="rect">Rettangolo</option>
-            <option value="ellipse">Ellisse</option>
-            <option value="cross">Croce</option>
-        </select>
-        <label for="dimensioneX">Dimensione X:</label>
-        <input type="number" id="dimensioneX" name="dimensioneX" min="1">
-        <label for="dimensioneX">Dimensione Y:</label>
-        <input type="number" id="dimensioneY" name="dimensioneY" min="1">
-        <input type="button" value="Invia Richiesta" onclick="submitForm()">
-    </form>
-    <img id="result" src="" height="200" alt="Result image...">
-    <script src="{{url_for('static', filename='js/main.js') }}"></script>
+      </div>
+    <div class="box">
+      <img id="result" src="" height="200" alt="Result image...">
+    </div>
+  </div>
+  <div class="input-group">
+    <label for="myFile" id="file-upload-btn">Carica File</label>
+    <input type="file" id="myFile" name="image", onchange="previewFile()">
+    <label for="operation">Operazione da eseguire:</label>
+    <select id="operation" name="operation">
+        <option value="dilate">Dilatazione</option>
+        <option value="erode">Erosione</option>
+        <option value="opening">Apertura</option>
+        <option value="closing">Chiusura</option>
+        <option value="contorni">Estrazione contorni</option>
+        <option value="top_hat">Top hat</option>
+        <option value="bottom_hat">Bottom hat</option>
+    </select>
+    <label for="forma">Forma:</label>
+    <select id="forma" name="forma">
+        <option value="rect">Rettangolo</option>
+        <option value="ellipse">Ellisse</option>
+        <option value="cross">Croce</option>
+    </select>
+    <select id="dimensioni" name="dimensioni">
+      <option value="3x3">3x3</option>
+      <option value="5x5">5x5</option>
+      <option value="7x7">7x7</option>
+      <option value="9x9">9x9</option>
+    </select>
+  </div>
+  <button type="button" id="submitButton" onclick="submitForm()">Invia richiesta</button>
+  <script src="{{url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
