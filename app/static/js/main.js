@@ -30,7 +30,6 @@ function submitForm() {
     .then(response => response.json())
     .then(data => {
     var img = document.getElementById('result');
-    console.log(data.image_data)
     result.src = 'data:image/png;base64,' + data.image_data;
     })
     .catch(error => console.error('Error:', error));
