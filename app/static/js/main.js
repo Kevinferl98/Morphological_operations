@@ -30,6 +30,10 @@ function submitForm() {
 
     var backendHost = 'http://localhost:5000';
 
+    document.querySelector('.loader').style.display = 'block';
+    document.getElementById('result').style.display = 'none';
+    updateLoaderPosition();
+
     fetch(backendHost + '/process_image', {
         method: 'POST',
         body: formData
@@ -37,6 +41,8 @@ function submitForm() {
     .then(response => response.json())
     .then(data => {
     var img = document.getElementById('result');
+    document.querySelector('.loader').style.display = 'none';
+    document.getElementById('result').style.display = 'block';
     result.src = 'data:image/png;base64,' + data.image_data;
     })
     .catch(error => console.error('Error:', error));
@@ -58,3 +64,21 @@ function checkData() {
 
     return true
 }
+
+function updateLoaderPosition() {
+    var box = document.getElementById('right-box');
+    var loader = document.querySelector('.loader');
+    
+    var boxHeight = box.offsetHeight;
+    var boxWidth = box.offsetWidth;
+    var loaderHeight = loader.offsetHeight;
+    var loaderWidth = loader.offsetWidth;
+    
+    loader.style.top = (boxHeight / 2 - loaderHeight / 2) + 'px';
+    loader.style.left = (boxWidth / 2 - loaderWidth / 2) + 'px';
+}
+
+window.onresize = function(event) {
+    updateLoaderPosition();
+  };
+  

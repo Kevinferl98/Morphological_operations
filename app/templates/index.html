@@ -11,7 +11,8 @@
       <div class="box">
         <img id="preview" src="{{url_for('static', filename='images/placeholder_1.jpg') }}" height="200" alt="Image preview...">
       </div>
-      <div class="box">
+      <div class="box" id="right-box">
+        <div class="loader" style="display: none;"></div>
         <img id="result" src="{{url_for('static', filename='images/placeholder_2.jpg') }}" height="200" alt="Result image...">
       </div>
     </div>
@@ -28,7 +29,7 @@
         <option value="top_hat">Top hat</option>
         <option value="bottom_hat">Bottom hat</option>
       </select>
-      <label for="forma">Forma:</label>
+      <label for="forma">Elemento strutturante:</label>
       <select id="forma" name="forma">
         <option value="rect">Rettangolo</option>
         <option value="ellipse">Ellisse</option>
