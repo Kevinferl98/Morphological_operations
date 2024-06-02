@@ -9,17 +9,17 @@
   <div class="container">
     <div class="content-boxes">
       <div class="box">
-        <img id="preview" src="" height="200" alt="Image preview...">
+        <img id="preview" src="{{url_for('static', filename='images/placeholder_1.jpg') }}" height="200" alt="Image preview...">
       </div>
-    <div class="box">
-      <img id="result" src="" height="200" alt="Result image...">
+      <div class="box">
+        <img id="result" src="{{url_for('static', filename='images/placeholder_2.jpg') }}" height="200" alt="Result image...">
+      </div>
     </div>
-  </div>
-  <div class="input-group">
-    <label for="myFile" id="file-upload-btn">Carica File</label>
-    <input type="file" id="myFile" name="image", onchange="previewFile()">
-    <label for="operation">Operazione da eseguire:</label>
-    <select id="operation" name="operation">
+    <div class="input-group">
+      <label for="myFile" id="file-upload-btn">Carica File</label>
+      <input type="file" id="myFile" name="image", onchange="previewFile()">
+      <label for="operation">Operazione da eseguire:</label>
+      <select id="operation" name="operation">
         <option value="dilate">Dilatazione</option>
         <option value="erode">Erosione</option>
         <option value="opening">Apertura</option>
@@ -27,21 +27,22 @@
         <option value="contorni">Estrazione contorni</option>
         <option value="top_hat">Top hat</option>
         <option value="bottom_hat">Bottom hat</option>
-    </select>
-    <label for="forma">Forma:</label>
-    <select id="forma" name="forma">
+      </select>
+      <label for="forma">Forma:</label>
+      <select id="forma" name="forma">
         <option value="rect">Rettangolo</option>
         <option value="ellipse">Ellisse</option>
         <option value="cross">Croce</option>
-    </select>
-    <select id="dimensioni" name="dimensioni">
-      <option value="3x3">3x3</option>
-      <option value="5x5">5x5</option>
-      <option value="7x7">7x7</option>
-      <option value="9x9">9x9</option>
-    </select>
+      </select>
+      <select id="dimensioni" name="dimensioni">
+        <option value="3x3">3x3</option>
+        <option value="5x5">5x5</option>
+        <option value="7x7">7x7</option>
+        <option value="9x9">9x9</option>
+      </select>
+    </div>
+    <button type="button" id="submitButton" onclick="submitForm()">Invia richiesta</button>
+    <script src="{{url_for('static', filename='js/main.js') }}"></script>
   </div>
-  <button type="button" id="submitButton" onclick="submitForm()">Invia richiesta</button>
-  <script src="{{url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
