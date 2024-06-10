@@ -1,5 +1,4 @@
-from flask import request, jsonify, render_template
-from app import app
+from flask import request, jsonify, render_template, Blueprint
 from app import morphological_operations
 import os
 from werkzeug.utils import secure_filename
@@ -7,21 +6,20 @@ import base64
 from PIL import Image
 import io
 
-app.config['UPLOAD_FOLDER'] = './'
+bp = Blueprint('routes', __name__)
 
-
-@app.route('/')
+@bp.route('/')
 def home():
     return render_template('index.html')
 
 
-@app.route('/process_image', methods=['POST'])
+@bp.route('/process_image', methods=['POST'])
 def process_image():
     file = get_file_from_request(request)
     if not file:
         return 'Nessun file selezionato per il caricamento', 400
     
-    file_path = save_file(file, app.config['UPLOAD_FOLDER'])
+    file_path = save_file(file, './')
     if not file_path:
         return 'Errore nel salvataggio del file', 500
     

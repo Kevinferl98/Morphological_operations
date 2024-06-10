@@ -28,13 +28,11 @@ function submitForm() {
     if(!checkData())
         return
 
-    var backendHost = 'http://localhost:5000';
-
     document.querySelector('.loader').style.display = 'block';
     document.getElementById('result').style.display = 'none';
     updateLoaderPosition();
 
-    fetch(backendHost + '/process_image', {
+    fetch('/process_image', {
         method: 'POST',
         body: formData
     })
