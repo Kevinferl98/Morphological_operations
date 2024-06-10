@@ -1,0 +1,118 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+}
+  
+.container {
+    max-width: 700px;
+    margin: auto;
+    overflow: hidden;
+    padding: 0 20px;
+}
+
+.content-boxes {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+  
+.box {
+    flex: 1;
+    margin: 0 10px;
+    background: #fff;
+    padding: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    position: relative;
+}
+  
+.box img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+  
+.input-group {
+    margin-bottom: 20px;
+}
+  
+.input-group input[type='number'],
+.input-group select {
+    width: calc(50% - 10px);
+    padding: 10px;
+    margin-bottom: 10px;
+}
+  
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+  
+button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background: #5cb85c;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    margin-top: 20px;
+}
+  
+button:hover {
+    background: #4cae4c;
+}
+
+#myFile {
+    display: none;
+}
+  
+label[for='myFile'] {
+    display: inline-block;
+    background: #337ab7;
+    color: white;
+    padding: 10px 20px;
+    margin: 10px 0;
+    cursor: pointer;
+}
+  
+label[for='myFile']:hover {
+    background: #286090;
+}
+  
+#myFile {
+    display: none;
+}
+  
+#file-upload-btn {
+    display: inline-block;
+    background: #337ab7;
+    color: white;
+    padding: 10px 20px;
+    margin: 10px 0;
+    cursor: pointer;
+    border: none;
+}
+  
+#file-upload-btn:hover {
+    background: #286090;
+}
+
+.loader {
+    border: 16px solid #f3f3f3;
+    border-top: 16px solid #3498db;
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    animation: spin 1s infinite linear;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

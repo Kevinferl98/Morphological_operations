@@ -11,6 +11,22 @@ class ImageType(Enum):
     UNDEFINED = 4
 
 
+class StructuringElementType(Enum):
+    RECT = 'rect'
+    ELLIPSE = 'ellipse'
+    CROSS = 'cross'
+
+
+class OperationType(Enum):
+    DILATE = 'dilate'
+    ERODE = 'erode'
+    APERTURA = 'opening'
+    CHIUSURA = 'closing'
+    CONTORNI = 'contorni'
+    TOP_HAT = 'top_hat'
+    BOTTOM_HAT = 'bottom_hat'
+
+
 def dilate(image, structuring_element, is_path, type_of_image):
     if is_path:
         image = cv2.imread(image, 0)
@@ -147,16 +163,54 @@ def classify_image(image_path):
         return ImageType.UNDEFINED
 
 
-def is_color_or_undefined(type_of_image) :
+def is_undefined(type_of_image) :
     if type_of_image == ImageType.UNDEFINED:
         return True
     return False
 
 
-structuring_element = np.ones((3, 3), np.uint8)
-str2 = np.array([
-    [0, 1, 0],
-    [0, 1, 0],
-    [0, 1, 0]
-], dtype=np.uint8)
-input_path = "lena_bw.png"
+def create_structuring_element(structuring_element_type, size):
+    if structuring_element_type == StructuringElementType.RECT.value:
+        return cv2.getStructuringElement(cv2.MORPH_RECT, size)
+    elif structuring_element_type == StructuringElementType.ELLIPSE.value:
+        return cv2.getStructuringElement(cv2.MORPH_ELLIPSE, size)
+    elif structuring_element_type == StructuringElementType.CROSS.value:
+        return cv2.getStructuringElement(cv2.MORPH_CROSS, size)
+    else:
+        return ValueError('Forma non valida')
+
+
+def execute_operation(operation_type, structuring_element, file_path, image_type):
+    if operation_type == OperationType.DILATE.value:
+        if image_type == ImageType.COLOR:
+            res = dilate_color(file_path, structuring_element, True)
+        else:
+            res = dilate(file_path, structuring_element, True, image_type)
+    elif operation_type == OperationType.ERODE.value:
+        if image_type == ImageType.COLOR:
+            res = erode_color(file_path, structuring_element, True)
+        else:
+            res = erode(file_path, structuring_element, True, image_type)
+    elif operation_type == OperationType.APERTURA.value:
+        res = apertura(file_path, structuring_element, image_type)
+    elif operation_type == OperationType.CHIUSURA.value:
+        res = chiusura(file_path, structuring_element, image_type)
+    elif operation_type == OperationType.CONTORNI.value:
+        res = estrazione_contorni(file_path, structuring_element, image_type)
+    elif operation_type == OperationType.TOP_HAT.value:
+        res = top_hat(file_path, structuring_element, image_type)
+    elif operation_type == OperationType.BOTTOM_HAT.value:
+        res = bottom_hat(file_path, structuring_element, image_type)
+    
+    if image_type == ImageType.COLOR:
+        return convert_bgr_to_rgb(res)
+    return res
+    
+
+def convert_bgr_to_rgb(bgr_image):
+    rgb_image = np.zeros_like(bgr_image)
+    rgb_image[:, :, 0] = bgr_image[:, :, 2]
+    rgb_image[:, :, 1] = bgr_image[:, :, 1]
+    rgb_image[:, :, 2] = bgr_image[:, :, 0]
+
+    return rgb_image
