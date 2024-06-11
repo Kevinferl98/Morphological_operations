@@ -24,3 +24,11 @@ docker-compose up -d
 Executing this command will initiate and run the container for the web application.
 
 Then, you can access the web application by navigating to the following URL: http://localhost:5000
+
+## How to use it
+
+After uploading an image, you will have the opportunity to choose the desired operation, as well as the shape and size of the structuring element.
+
+Once these selections have been made, you can proceed by submitting the request. As a result, you will receive the image processed based on the choices made.
+
+<img src="Images/Example.png" alt="example" width="400"/>
