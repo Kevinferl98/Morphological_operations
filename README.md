@@ -21,6 +21,6 @@ The project can be run simply by executing the following command:
 ```
 docker-compose up -d
 ```
-Executing this command will initiate and run the containers for both the web application and the database. 
+Executing this command will initiate and run the container for the web application.
 
 Then, you can access the web application by navigating to the following URL: http://localhost:5000
