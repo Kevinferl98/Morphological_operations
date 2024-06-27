@@ -31,7 +31,7 @@ def process_image():
     processed_image = process_image_file(request.form, file_path, image_type)
     cleanup_file(file_path)
     
-    if process_image:
+    if processed_image:
         return jsonify({'image_data': processed_image})
     else:
         return 'Errore nell\'elaborazione dell\'immagine', 500
