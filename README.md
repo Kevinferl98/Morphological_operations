@@ -31,5 +31,5 @@ After uploading an image, you will have the opportunity to choose the desired op
 
 Once these selections have been made, you can proceed by submitting the request. As a result, you will receive the image processed based on the choices made.
 <p align="center">
-<img src="Images/Example.png" alt="example" width="80%"/>
+<img src="Images/Demo.gif" alt="Demo" width="80%"/>
 </p>
