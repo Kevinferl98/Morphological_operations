@@ -1,10 +1,10 @@
 # Morphological operations
 
-Morphological operation rapresent a suite of techniques in image processing. They are fundamentally grounded in two concepts: reflection and translation. 
+Morphological operations represent a suite of techniques in image processing that allow particular structures of an image to emerge or be attenuated.
 
-These operations employ structuring elements. A structuring element is a matrix that defines the neighborhood used to process each pixel in the image. The center pixel of the structuring element, called the origin, identifies the pixel in the image being processed.
+Morphological operations work by sliding a structuring element over the image. A structuring element is a matrix that defines the region of pixels to be used to process each pixel of the image. The central pixel of the structuring element identifies the pixel of the image beign processed.
 
-The array of morphological operations includes dilation, erosion, opning, and closing. When these operations are combined with different structuring elements, they can transform an image in various ways.
+The array of morphological operations includes dilation, erosion, opening, and closing. When these operations are combined with different structuring elements, they can transform an image in various ways.
 
 ## About this project
 
