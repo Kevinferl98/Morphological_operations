@@ -1,27 +1,32 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <title>Morphological Operations</title>
 </head>
 <body>
   <div class="container">
+    <h1>Morphological Image Processor</h1>
+
     <div class="content-boxes">
-      <div class="box">
-        <img id="preview" src="{{ url_for('static', filename='images/placeholder_1.jpg') }}" height="200" alt="Image preview...">
+      <div class="box" id="drop-zone">
+        <p>Drag & Drop image here or click to upload</p>
+        <input type="file" id="myFile" name="image" onchange="previewFile()">
+        <img id="preview" src="{{ url_for('static', filename='images/placeholder_1.jpg') }}" alt="Preview">
       </div>
+
       <div class="box" id="right-box">
-        <div class="loader" style="display: none;"></div>
-        <img id="result" src="{{ url_for('static', filename='images/placeholder_2.jpg') }}" height="200" alt="Result image...">
+        <p style="visibility:hidden">placeholder</p>
+        <div class="loader" style="display:none;"></div>
+        <img id="result" src="{{ url_for('static', filename='images/placeholder_2.jpg') }}" alt="Result">
       </div>
     </div>
-    <div class="input-group">
-      <label for="myFile" id="file-upload-btn">Upload image</label>
-      <input type="file" id="myFile" name="image" onchange="previewFile()">
 
-      <label for="operation">Morphological operation to execute:</label>
-      <select id="operation" name="operation">
+    <div class="input-group">
+      <label for="operation">Morphological operation:</label>
+      <select id="operation">
         <option value="dilate">Dilation</option>
         <option value="erode">Erosion</option>
         <option value="opening">Opening</option>
@@ -32,13 +37,14 @@
       </select>
 
       <label for="shape">Structuring element:</label>
-      <select id="shape" name="shape">
+      <select id="shape">
         <option value="rect">Rectangle</option>
         <option value="ellipse">Ellipse</option>
         <option value="cross">Cross</option>
       </select>
 
-      <select id="dimensions" name="dimensions">
+      <label for="dimensions">Element size:</label>
+      <select id="dimensions">
         <option value="3x3">3x3</option>
         <option value="5x5">5x5</option>
         <option value="7x7">7x7</option>
@@ -50,8 +56,10 @@
         <option value="19x19">19x19</option>
       </select>
     </div>
-    <button type="button" id="submitButton" onclick="submitForm()">Execute operation</button>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <button type="button" onclick="submitForm()">Execute Operation</button>
   </div>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
