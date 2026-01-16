@@ -32,7 +32,6 @@ def process_image():
         if image_type == morph.ImageType.UNDEFINED:
             return "Unsupported image type", 400
         
-        # Get operation parameters
         operation = request.form.get("operation")
         struct_type = request.form.get("shape")
         size_x = int(request.form.get("sizeX"))
@@ -56,6 +55,11 @@ def load_image_from_request(file):
     image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
     if image is None:
         raise ValueError("Invalid image file")
+    
+    if image.ndim == 3:
+        if np.all(image[..., 0] == image[..., 1]) and np.all(image[..., 1] == image[..., 2]):
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
     return image
 
 def encode_image(image: np.ndarray) -> str:
