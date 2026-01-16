@@ -3,3 +3,5 @@ Werkzeug==3.0.3
 numpy==1.26.4
 pillow==12.1.0
 opencv-python==4.9.0.80
+pytest
+pytest-cov
