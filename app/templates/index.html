@@ -3,39 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
   <div class="container">
     <div class="content-boxes">
       <div class="box">
-        <img id="preview" src="{{url_for('static', filename='images/placeholder_1.jpg') }}" height="200" alt="Image preview...">
+        <img id="preview" src="{{ url_for('static', filename='images/placeholder_1.jpg') }}" height="200" alt="Image preview...">
       </div>
       <div class="box" id="right-box">
         <div class="loader" style="display: none;"></div>
-        <img id="result" src="{{url_for('static', filename='images/placeholder_2.jpg') }}" height="200" alt="Result image...">
+        <img id="result" src="{{ url_for('static', filename='images/placeholder_2.jpg') }}" height="200" alt="Result image...">
       </div>
     </div>
     <div class="input-group">
       <label for="myFile" id="file-upload-btn">Upload image</label>
-      <input type="file" id="myFile" name="image", onchange="previewFile()">
+      <input type="file" id="myFile" name="image" onchange="previewFile()">
+
       <label for="operation">Morphological operation to execute:</label>
       <select id="operation" name="operation">
         <option value="dilate">Dilation</option>
         <option value="erode">Erosion</option>
         <option value="opening">Opening</option>
         <option value="closing">Closing</option>
-        <option value="contorni">Countor extraction</option>
+        <option value="contour">Contour extraction</option>
         <option value="top_hat">Top hat</option>
         <option value="bottom_hat">Bottom hat</option>
       </select>
-      <label for="forma">Structuring element:</label>
-      <select id="forma" name="forma">
+
+      <label for="shape">Structuring element:</label>
+      <select id="shape" name="shape">
         <option value="rect">Rectangle</option>
         <option value="ellipse">Ellipse</option>
         <option value="cross">Cross</option>
       </select>
-      <select id="dimensioni" name="dimensioni">
+
+      <select id="dimensions" name="dimensions">
         <option value="3x3">3x3</option>
         <option value="5x5">5x5</option>
         <option value="7x7">7x7</option>
@@ -47,8 +50,8 @@
         <option value="19x19">19x19</option>
       </select>
     </div>
-    <button type="button" id="submitButton" onclick="submitForm()">Exceute operation</button>
-    <script src="{{url_for('static', filename='js/main.js') }}"></script>
+    <button type="button" id="submitButton" onclick="submitForm()">Execute operation</button>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   </div>
 </body>
 </html>

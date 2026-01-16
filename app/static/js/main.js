@@ -15,18 +15,17 @@ function previewFile() {
 }
 
 function submitForm() {
-  var formData = new FormData()
-    var dimensioniElementoStrutturante = document.getElementById('dimensioni').value;
+    var formData = new FormData();
+    var dimensioniElementoStrutturante = document.getElementById('dimensions').value;
     var [x, y] = dimensioniElementoStrutturante.split('x').map(Number);
 
     formData.append('image', document.getElementById('myFile').files[0]);
     formData.append('operation', document.getElementById('operation').value);
-    formData.append('forma', document.getElementById('forma').value);
-    formData.append('dimensioneX', x);
-    formData.append('dimensioneY', y);
+    formData.append('shape', document.getElementById('shape').value);
+    formData.append('sizeX', x);
+    formData.append('sizeY', y);
 
-    if(!checkData())
-        return
+    if(!checkData()) return;
 
     document.querySelector('.loader').style.display = 'block';
     document.getElementById('result').style.display = 'none';
@@ -36,47 +35,53 @@ function submitForm() {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-    var img = document.getElementById('result');
-    document.querySelector('.loader').style.display = 'none';
-    document.getElementById('result').style.display = 'block';
-    result.src = 'data:image/png;base64,' + data.image_data;
+    .then(response => {
+        if (!response.ok) throw new Error("Server error");
+        return response.json();
     })
-    .catch(error => console.error('Error:', error));
+    .then(data => {
+        var img = document.getElementById('result');
+        document.querySelector('.loader').style.display = 'none';
+        img.style.display = 'block';
+        img.src = 'data:image/png;base64,' + data.image_data;
+    })
+    .catch(error => {
+        document.querySelector('.loader').style.display = 'none';
+        alert("Error processing image");
+        console.error(error);
+    });
 }
 
 function checkData() {
-    var forma = document.getElementById('forma').value;
-    var fileInput = document.getElementById('myFile');
+    var shape = document.getElementById('shape').value;
+    var inputFile = document.getElementById('myFile');
 
-    if(fileInput.files.length === 0) {
-        alert('Per favore, carica un file.');
+    if(inputFile.files.length === 0) {
+        alert('Please upload a file.');
         return false;
     }
 
-    if(forma === '') {
-        alert('Per favore, seleziona una forma.');
+    if(shape === '') {
+        alert('Please select a shape.');
         return false;
     }
 
-    return true
+    return true;
 }
 
 function updateLoaderPosition() {
     var box = document.getElementById('right-box');
     var loader = document.querySelector('.loader');
-    
+
     var boxHeight = box.offsetHeight;
     var boxWidth = box.offsetWidth;
     var loaderHeight = loader.offsetHeight;
     var loaderWidth = loader.offsetWidth;
-    
+
     loader.style.top = (boxHeight / 2 - loaderHeight / 2) + 'px';
     loader.style.left = (boxWidth / 2 - loaderWidth / 2) + 'px';
 }
 
 window.onresize = function(event) {
     updateLoaderPosition();
-  };
-  
+};
