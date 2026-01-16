@@ -1,8 +1,6 @@
 import numpy as np
 import cv2
-from PIL import Image
 from enum import Enum
-
 
 class ImageType(Enum):
     BLACK_AND_WHITE = 1
@@ -10,202 +8,202 @@ class ImageType(Enum):
     COLOR = 3
     UNDEFINED = 4
 
-
 class StructuringElementType(Enum):
-    RECT = 'rect'
-    ELLIPSE = 'ellipse'
-    CROSS = 'cross'
-
+    RECT = "rect"
+    ELLIPSE = "ellipse"
+    CROSS = "cross"
 
 class OperationType(Enum):
-    DILATE = 'dilate'
-    ERODE = 'erode'
-    APERTURA = 'opening'
-    CHIUSURA = 'closing'
-    CONTORNI = 'contorni'
-    TOP_HAT = 'top_hat'
-    BOTTOM_HAT = 'bottom_hat'
+    DILATE = "dilate"
+    ERODE = "erode"
+    OPENING = "opening"
+    CLOSING = "closing"
+    CONTOUR = "contour"
+    TOP_HAT = "top_hat"
+    BOTTOM_HAT = "bottom_hat"
 
+def classify_image_array(image: np.ndarray) -> ImageType:
+    if image.ndim == 2:
+        unique = np.unique(image)
+        if np.all(np.isin(unique, [0, 255])):
+            return ImageType.BLACK_AND_WHITE
+        return ImageType.GREY_SCALE
+    
+    if image.ndim == 3:
+        if np.all(image[..., 0] == image[..., 1]) and np.all(image[..., 1] == image[..., 2]):
+            return ImageType.GREY_SCALE
+        return ImageType.COLOR
+    
+    return ImageType.UNDEFINED
 
-def dilate(image, structuring_element, is_path, type_of_image):
-    if is_path:
-        image = cv2.imread(image, 0)
+def create_structuring_element(shape_type: str, size: tuple) -> np.ndarray:
+    if shape_type == StructuringElementType.RECT.value:
+        return cv2.getStructuringElement(cv2.MORPH_RECT, size)
+    elif shape_type == StructuringElementType.ELLIPSE.value:
+        return cv2.getStructuringElement(cv2.MORPH_ELLIPSE, size)
+    elif shape_type == StructuringElementType.CROSS.value:
+        return cv2.getStructuringElement(cv2.MORPH_CROSS, size)
+    else:
+        raise ValueError("Invalid structuring element shape")
 
-    m, n = structuring_element.shape
+def execute_operation(operation: str, image: np.ndarray, struct_element: np.ndarray, image_type: ImageType) -> np.ndarray:
+    OPERATIONS = {
+        OperationType.DILATE.value: dilate,
+        OperationType.ERODE.value: erode,
+        OperationType.OPENING.value: opening,
+        OperationType.CLOSING.value: closing,
+        OperationType.CONTOUR.value: contour_extraction,
+        OperationType.TOP_HAT.value: top_hat,
+        OperationType.BOTTOM_HAT.value: bottom_hat
+    }
+
+    if operation not in OPERATIONS:
+        raise ValueError("Unsupported operation")
+    
+    res =  OPERATIONS[operation](image, struct_element, image_type)
+
+    if image_type == ImageType.COLOR:
+        res = convert_bgr_to_rgb(res)
+    return res 
+
+def dilate(image: np.ndarray, struct_element: np.ndarray, image_type: ImageType) -> np.ndarray:
+    if image_type == ImageType.COLOR:
+        return dilate_color(image, struct_element)
+
+    m, n = struct_element.shape
     h, w = image.shape
-    new_image = np.zeros((h, w))
-    for i in range(h):
-        for j in range(w):
-            top = max(0, i-m//2)
-            bottom = min(h, i+m//2+1)
-            left = max(0, j-n//2)
-            right = min(w, j+n//2+1)
-            region = image[top:bottom, left:right]
-            k = structuring_element[m // 2 - (i - top):m // 2 + (bottom - i), n // 2 - (j - left):n // 2 + (right - j)]
-            if type_of_image == ImageType.BLACK_AND_WHITE:
-                if np.any((region == 255) & (k == 1)):
-                    new_image[i][j] = 255
-            else:
-                new_image[i][j] = np.max(region[k == 1])
-    return new_image
+    new_image = np.zeros((h, w), dtype=np.uint8)
 
-
-def dilate_color(image, structuring_element, is_path):
-    if is_path:
-        image = cv2.imread(image, 1)
-
-    m, n = structuring_element.shape
-    height, width, channel = image.shape
-    new_image = np.zeros((height, width, 3), dtype=np.uint8)
-    for ch in range(channel):
-        for i in range(height):
-            for j in range(width):
-                top = max(0, i -m // 2)
-                bottom = min(height, i + m // 2 + 1)
-                left = max(0, j - n // 2)
-                right = min(width, j + n // 2 + 1)
-                region = image[top:bottom, left:right, ch]
-                k = structuring_element[m // 2 - (i - top):m // 2 + (bottom - i), n // 2 - (j - left):n // 2 + (right - j)]
-                new_image[i][j][ch] = np.max(region[k == 1])
-    return new_image
-
-
-def erode(image, structuring_element, is_path, type_of_image):
-    if is_path:
-        image = cv2.imread(image, 0)
-
-    m, n = structuring_element.shape
-    h, w = image.shape
-    new_image = np.zeros((h, w))
     for i in range(h):
         for j in range(w):
             top = max(0, i - m // 2)
             bottom = min(h, i + m // 2 + 1)
             left = max(0, j - n // 2)
             right = min(w, j + n // 2 + 1)
+            
             region = image[top:bottom, left:right]
-            k = structuring_element[m // 2 - (i - top):m // 2 + (bottom - i), n // 2 - (j - left):n // 2 + (right - j)]
-            if type_of_image == ImageType.BLACK_AND_WHITE:
-                if np.all(region[k == 1] == 255):
-                    new_image[i][j] = 255
+            k = struct_element[
+                m // 2 - (i - top) : m // 2 + (bottom - i),
+                n // 2 - (j - left) :n // 2 + (right - j)
+            ]
+
+            masked = region[k == 1]
+            if masked.size == 0:
+                continue
+
+            if image_type == ImageType.BLACK_AND_WHITE:
+                if np.any(masked == 255):
+                    new_image[i, j] = 255
             else:
-                new_image[i][j] = np.min(region[k == 1])
+                new_image[i, j] = np.max(masked)
+        
     return new_image
 
-
-def erode_color(image, structuring_element, is_path):
-    if is_path:
-        image = cv2.imread(image, 1)
-
-    m, n = structuring_element.shape
+def dilate_color(image: np.ndarray, struct_element: np.ndarray) -> np.ndarray:
+    m, n = struct_element.shape
     height, width, channel = image.shape
     new_image = np.zeros((height, width, 3), dtype=np.uint8)
+
     for ch in range(channel):
         for i in range(height):
             for j in range(width):
-                top = max(0, i -m // 2)
+                top = max(0, i - m // 2)
                 bottom = min(height, i + m // 2 + 1)
                 left = max(0, j - n // 2)
                 right = min(width, j + n // 2 + 1)
+
                 region = image[top:bottom, left:right, ch]
-                k = structuring_element[m // 2 - (i - top):m // 2 + (bottom - i), n // 2 - (j - left):n // 2 + (right - j)]
-                new_image[i][j][ch] = np.min(region[k == 1])
+                k = struct_element[
+                    m // 2 - (i - top) : m // 2 + (bottom - i),
+                    n // 2 - (j - left) : n // 2 + (right - j)
+                ]
+                
+                masked = region[k == 1]
+                if masked.size > 0:
+                    new_image[i][j][ch] = np.max(masked)
+    
     return new_image
 
-
-def apertura(image_path, structuring_element, type_of_image):
-    image = cv2.imread(image_path, 1 if type_of_image == ImageType.COLOR else 0)
-    if type_of_image == ImageType.COLOR:
-        return dilate_color(erode_color(image, structuring_element, False), structuring_element, False)
-    return dilate(erode(image, structuring_element, False, type_of_image), structuring_element, False, type_of_image)
-
-
-def chiusura(image_path, structuring_element, type_of_image):
-    image = cv2.imread(image_path, 1 if type_of_image == ImageType.COLOR else 0)
-    if type_of_image == ImageType.COLOR:
-        return erode_color(dilate_color(image, structuring_element, False), structuring_element, False)
-    return erode(dilate(image, structuring_element, False, type_of_image), structuring_element, False, type_of_image)
-
-
-def estrazione_contorni(image_path, structuring_element, type_of_image):
-    image = cv2.imread(image_path, 1 if type_of_image == ImageType.COLOR else 0)
-    if type_of_image == ImageType.COLOR:
-        return dilate_color(image, structuring_element, False) - erode_color(image, structuring_element, False)
-    return dilate(image, structuring_element, False, type_of_image) - erode(image, structuring_element, False, type_of_image)
-
-
-def top_hat(image_path, structuring_element, type_of_image):
-    image = cv2.imread(image_path, 1 if type_of_image == ImageType.COLOR else 0)
-    return image - apertura(image_path, structuring_element, type_of_image)
-
-
-def bottom_hat(image_path, structuring_element, type_of_image):
-    image = cv2.imread(image_path, 1 if type_of_image == ImageType.COLOR else 0)
-    return chiusura(image_path, structuring_element, type_of_image) - image
-
-
-def classify_image(image_path):
-    with Image.open(image_path) as img:
-        pixels = list(img.getdata())
-
-        if img.mode == 'L':
-            return ImageType.BLACK_AND_WHITE if all(pixel in (0, 255) for pixel in pixels) else ImageType.GREY_SCALE
-
-        is_greyscale = all(pixel[0] == pixel[1] == pixel[2] for pixel in pixels)
-
-        if img.mode == 'RGB':
-            return ImageType.GREY_SCALE if is_greyscale else ImageType.COLOR
-        if img.mode == 'RGBA':
-            all_pixels_are_black_and_white = all(pixel[:3] == (0, 0, 0) or pixel[:3] == (255, 255, 255) for pixel in pixels)
-            if all_pixels_are_black_and_white:
-                return ImageType.BLACK_AND_WHITE
-            return ImageType.GREY_SCALE if is_greyscale else ImageType.COLOR
-        return ImageType.UNDEFINED
-
-
-def is_undefined(type_of_image) :
-    if type_of_image == ImageType.UNDEFINED:
-        return True
-    return False
-
-
-def create_structuring_element(structuring_element_type, size):
-    if structuring_element_type == StructuringElementType.RECT.value:
-        return cv2.getStructuringElement(cv2.MORPH_RECT, size)
-    elif structuring_element_type == StructuringElementType.ELLIPSE.value:
-        return cv2.getStructuringElement(cv2.MORPH_ELLIPSE, size)
-    elif structuring_element_type == StructuringElementType.CROSS.value:
-        return cv2.getStructuringElement(cv2.MORPH_CROSS, size)
-    else:
-        return ValueError('Forma non valida')
-
-
-def execute_operation(operation_type, structuring_element, file_path, image_type):
-    if operation_type == OperationType.DILATE.value:
-        if image_type == ImageType.COLOR:
-            res = dilate_color(file_path, structuring_element, True)
-        else:
-            res = dilate(file_path, structuring_element, True, image_type)
-    elif operation_type == OperationType.ERODE.value:
-        if image_type == ImageType.COLOR:
-            res = erode_color(file_path, structuring_element, True)
-        else:
-            res = erode(file_path, structuring_element, True, image_type)
-    elif operation_type == OperationType.APERTURA.value:
-        res = apertura(file_path, structuring_element, image_type)
-    elif operation_type == OperationType.CHIUSURA.value:
-        res = chiusura(file_path, structuring_element, image_type)
-    elif operation_type == OperationType.CONTORNI.value:
-        res = estrazione_contorni(file_path, structuring_element, image_type)
-    elif operation_type == OperationType.TOP_HAT.value:
-        res = top_hat(file_path, structuring_element, image_type)
-    elif operation_type == OperationType.BOTTOM_HAT.value:
-        res = bottom_hat(file_path, structuring_element, image_type)
-    
+def erode(image: np.ndarray, struct_element: np.ndarray, image_type: ImageType) -> np.ndarray:
     if image_type == ImageType.COLOR:
-        return convert_bgr_to_rgb(res)
-    return res
-    
+        return erode_color(image, struct_element)
+
+    m, n = struct_element.shape
+    h, w = image.shape
+    new_image = np.zeros((h, w), dtype=np.uint8)
+
+    for i in range(h):
+        for j in range(w):
+            top = max(0, i - m // 2)
+            bottom = min(h, i + m // 2 + 1)
+            left = max(0, j - n // 2)
+            right = min(w, j + n // 2 + 1)
+
+            region = image[top:bottom, left:right]
+            k = struct_element[
+                m // 2 - (i - top) : m // 2 + (bottom - i),
+                n // 2 - (j - left) : n // 2 + (right - j)
+            ]
+        
+            masked = region[k == 1]
+            if masked.size == 0:
+                continue
+
+            if image_type == ImageType.BLACK_AND_WHITE:
+                if np.all(masked == 255):
+                    new_image[i, j] = 255
+            else:
+                new_image[i, j] = np.min(masked)
+
+    return new_image
+
+def erode_color(image: np.ndarray, struct_element: np.ndarray) -> np.ndarray:
+    m, n = struct_element.shape
+    height, width, channel = image.shape
+    new_image = np.zeros((height, width, 3), dtype=np.uint8)
+
+    for ch in range(channel):
+        for i in range(height):
+            for j in range(width):
+                top = max(0, i - m // 2)
+                bottom = min(height, i + m // 2 + 1)
+                left = max(0, j - n // 2)
+                right = min(width, j + n // 2 + 1)
+
+                region = image[top:bottom, left:right, ch]
+                k = struct_element[
+                    m // 2 - (i - top) : m // 2 + (bottom - i),
+                    n // 2 - (j - left) : n // 2 + (right - j)
+                ]
+
+                masked = region[k == 1]
+                if masked.size > 0:
+                    new_image[i][j][ch] = np.min(masked)
+
+    return new_image
+
+def opening(image: np.ndarray, struct_element: np.ndarray, image_type: ImageType) -> np.ndarray:
+    return dilate(erode(image, struct_element, image_type), struct_element, image_type)
+
+def closing(image: np.ndarray, struct_element: np.ndarray, image_type: ImageType) -> np.ndarray:
+    return erode(dilate(image, struct_element, image_type), struct_element, image_type)
+
+def contour_extraction(image: np.ndarray, struct_element: np.ndarray, image_type: ImageType) -> np.ndarray:
+    dilated = dilate(image, struct_element, image_type)
+    eroded = erode(image, struct_element, image_type)
+
+    result = dilated.astype(np.int16) - eroded.astype(np.int16)
+    return np.clip(result, 0, 255).astype(np.uint8)
+
+def top_hat(image: np.ndarray, struct_element: np.ndarray, image_type: ImageType) -> np.ndarray:
+    opened = opening(image, struct_element, image_type)
+    result = image.astype(np.int16) - opened.astype(np.int16)
+    return np.clip(result, 0, 255).astype(np.uint8)
+
+def bottom_hat(image: np.ndarray, struct_element: np.ndarray, image_type: ImageType) -> np.ndarray:
+    closed = closing(image, struct_element, image_type)
+    result = closed.astype(np.int16) - image.astype(np.int16)
+    return np.clip(result, 0, 255).astype(np.uint8)
 
 def convert_bgr_to_rgb(bgr_image):
     rgb_image = np.zeros_like(bgr_image)
