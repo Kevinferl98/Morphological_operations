@@ -19,8 +19,6 @@ def process_image():
     try:
         # Get uploaded file
         file = request.files.get("image")
-        print(file)
-        print("Form data:", request.form)
         if not file:
             return "No file uploaded", 400
 

@@ -2,14 +2,23 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches:
+      - master
   pull_request:
-    branches: [master]
+    branches: 
+      - master
+
+permissions:
+  contents: read
 
 jobs:
   test:
+    name: Run tests
     runs-on: ubuntu-latest
       
+    strategy: 
+      fail-fast: false
+
     steps:
       - uses: actions/checkout@v6
 
@@ -17,6 +26,7 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.14"
+          cache: pip
                 
       - name: Install dependencies
         run: |
@@ -26,4 +36,4 @@ jobs:
       - name: Run tests
         run: |
           echo "Running pytest with coverage..."
-          python -m pytest --cov=app --cov-report=term
+          python -m pytest --cov=app --cov-report=term-missing --cov-fail-under=80
