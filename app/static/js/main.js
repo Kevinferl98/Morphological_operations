@@ -51,7 +51,7 @@ function submitForm() {
     resultImg.style.display = "none";
     updateLoaderPosition();
 
-    fetch("/process_image", { method: "POST", body: formData })
+    /*fetch("/process_image", { method: "POST", body: formData })
         .then(res => {
             if (!res.ok) throw new Error("Server error");
             return res.json();
@@ -64,6 +64,19 @@ function submitForm() {
         .catch(err => {
             loader.style.display = "none";
             alert("Error processing image");
+            console.error(err);
+        });*/
+    fetch("/jobs", {method: "POST", body: formData})
+        .then(res => {
+            if (!res.ok) throw new Error("Server error");
+            return res.json();
+        })
+        .then(data => {
+            pollJobStatus(data.job_id);
+        })
+        .catch(err => {
+            loader.style.display = "none";
+            alert("Error submitting job");
             console.error(err);
         });
 }
@@ -87,3 +100,30 @@ function updateLoaderPosition() {
 }
 
 window.addEventListener("resize", updateLoaderPosition);
+
+function pollJobStatus(jobId) {
+    fetch(`/jobs/${jobId}`)
+        .then(res => {
+            if (!res.ok) throw new Error("Job status error");
+            return res.json()
+        })
+        .then(data => {
+            if (data.status === "done") {
+                loader.style.display = "none";
+                resultImg.src = "data:image/png;base64," + data.image_data;
+                resultImg.style.display = "block";
+            }
+            else if (data.status === "error") {
+                loader.style.display = "none";
+                alert("Error processing image: " + data.message);
+            }
+            else {
+                setTimeout(() => pollJobStatus(jobId), 1000);
+            }
+        })
+        .catch(err => {
+            loader.style.display = "none";
+            alert("Error checking job status");
+            console.error(err);
+        });
+}
