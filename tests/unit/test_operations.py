@@ -1,11 +1,15 @@
 import numpy as np
+import pytest
+
 from app.morphological_operations import (
     dilate, erode, opening, closing,
     top_hat, bottom_hat, contour_extraction,
     ImageType, create_structuring_element
 )
 
-kernel = create_structuring_element("rect", (3, 3))
+@pytest.fixture
+def kernel():
+    return create_structuring_element("rect", (3, 3))
 
 def grayscale_image():
     return np.array([
@@ -28,7 +32,7 @@ def color_image():
         [[10, 0, 0], [10, 0, 0], [10, 0, 0]]
     ], dtype=np.uint8)
 
-def test_dilate_greyscale():
+def test_dilate_greyscale(kernel):
     img = grayscale_image()
     expected = np.array([
         [50, 50, 50],
@@ -39,7 +43,7 @@ def test_dilate_greyscale():
     out = dilate(img, kernel, ImageType.GREY_SCALE)
     assert np.array_equal(out, expected)
 
-def test_erode_greyscale():
+def test_erode_greyscale(kernel):
     img = grayscale_image()
     expected = np.array([
         [10, 10, 10],
@@ -50,7 +54,7 @@ def test_erode_greyscale():
     out = erode(img, kernel, ImageType.GREY_SCALE)
     assert np.array_equal(out, expected)
 
-def test_opening_greyscale():
+def test_opening_greyscale(kernel):
     img = grayscale_image()
     expected = np.array([
         [10, 10, 10],
@@ -61,7 +65,7 @@ def test_opening_greyscale():
     out = opening(img, kernel, ImageType.GREY_SCALE)
     assert np.array_equal(out, expected)
 
-def test_closing_greyscale():
+def test_closing_greyscale(kernel):
     img = grayscale_image()
     expected = np.array([
         [50, 50, 50],
@@ -72,7 +76,7 @@ def test_closing_greyscale():
     out = closing(img, kernel, ImageType.GREY_SCALE)
     assert np.array_equal(out, expected)
 
-def test_top_hat_greyscale():
+def test_top_hat_greyscale(kernel):
     img = grayscale_image()
     expected = np.array([
         [0, 0, 0],
@@ -83,7 +87,7 @@ def test_top_hat_greyscale():
     out = top_hat(img, kernel, ImageType.GREY_SCALE)
     assert np.array_equal(out, expected)
 
-def test_bottom_hat_greyscale():
+def test_bottom_hat_greyscale(kernel):
     img = grayscale_image()
     expected = np.array([
         [40, 40, 40],
@@ -94,7 +98,7 @@ def test_bottom_hat_greyscale():
     out = bottom_hat(img, kernel, ImageType.GREY_SCALE)
     assert np.array_equal(out, expected)
 
-def test_contour_extraction_greyscale():
+def test_contour_extraction_greyscale(kernel):
     img = grayscale_image()
     expected = np.array([
         [40, 40, 40],
@@ -105,7 +109,7 @@ def test_contour_extraction_greyscale():
     out = contour_extraction(img, kernel, ImageType.GREY_SCALE)
     assert np.array_equal(out, expected)
 
-def test_dilate_bw():
+def test_dilate_bw(kernel):
     img = bw_image()
     expected = np.array([
         [255, 255, 255],
@@ -115,7 +119,7 @@ def test_dilate_bw():
     out = dilate(img, kernel, ImageType.BLACK_AND_WHITE)
     assert np.array_equal(out, expected)
 
-def test_erode_bw():
+def test_erode_bw(kernel):
     img = bw_image()
     expected = np.array([
         [0, 0, 0],
@@ -125,7 +129,7 @@ def test_erode_bw():
     out = erode(img, kernel, ImageType.BLACK_AND_WHITE)
     assert np.array_equal(out, expected)
 
-def test_dilate_color():
+def test_dilate_color(kernel):
     img = color_image()
     expected = np.array([
         [[50,0,0],[50,0,0],[50,0,0]],
@@ -135,7 +139,7 @@ def test_dilate_color():
     out = dilate(img, kernel, ImageType.COLOR)
     assert np.array_equal(out, expected)
 
-def test_erode_color():
+def test_erode_color(kernel):
     img = color_image()
     expected = np.array([
         [[10,0,0],[10,0,0],[10,0,0]],
