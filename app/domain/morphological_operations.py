@@ -1,6 +1,10 @@
 import numpy as np
 import cv2
 from enum import Enum
+from app.exceptions import ValidationError
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ImageType(Enum):
     BLACK_AND_WHITE = 1
@@ -58,7 +62,8 @@ def execute_operation(operation: str, image: np.ndarray, struct_element: np.ndar
     }
 
     if operation not in OPERATIONS:
-        raise ValueError("Unsupported operation")
+        logger.warning("Unsupported operation requested: %s", operation)
+        raise ValidationError(f"Unsupported operation: {operation}")
     
     res =  OPERATIONS[operation](image, struct_element, image_type)
 

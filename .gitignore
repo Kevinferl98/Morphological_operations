@@ -1,2 +1,10 @@
+# IDE
 .idea/
-app/__pycache__
+
+# Python
+__pycache__/
+*.py[cod]
+.coverage
+
+# Test articats
+.pytest_cache
