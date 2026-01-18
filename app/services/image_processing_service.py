@@ -1,6 +1,7 @@
 from app.utils.image_io import load_image_from_bytes, encode_image
 from app.domain import morphological_operations as morph
 import logging
+from app.exceptions import ValidationError, BadRequestError
 
 logger = logging.getLogger(__name__)
 
@@ -11,12 +12,15 @@ class ImageProcessingService:
 
         image_type = morph.classify_image_array(image)
         if image_type == morph.ImageType.UNDEFINED:
-            raise ValueError("Unsupported image type")
+            raise ValidationError("Unsupported image type")
         
-        operation = params.get("operation")
-        struct_type = params.get("shape")
-        size_x = int(params.get("sizeX"))
-        size_y = int(params.get("sizeY"))
+        try:
+            operation = params.get("operation")
+            struct_type = params.get("shape")
+            size_x = int(params.get("sizeX"))
+            size_y = int(params.get("sizeY"))
+        except KeyError as e:
+            raise BadRequestError(f"Missing parameter: {e.args[0]}")
 
         struct_element = morph.create_structuring_element(
             struct_type,
