@@ -38,7 +38,7 @@ This command will start the containers for both the Flask web application and Re
 
 Start by dragging and dropping an image into the designated area or clicking to upload a file. Then, select the desired morphological operation, choose the structuring element’s shape and size, and click the "Execute Operation" button. The backend will process the image asynchronously, and the processed result will be displayed once ready.
 
-This demo showcases edge extraction from a black-and-white image. By selecting the "Extract Edges" operation, the application highlights the contours of shapes present in the image.
+This demo showcases contour extraction from a black-and-white image. By selecting the "Contour extraction" operation, the application highlights the contours of shapes present in the image.
 
 <p align="center">
 <img src="Images/contour_extraction.gif" alt="contour_extraction" width="80%"/>
