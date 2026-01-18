@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,9 +11,10 @@
     <h1>Morphological Image Processor</h1>
 
     <div class="content-boxes">
-      <div class="box" id="drop-zone">
+      <div class="box" id="drop-zone" aria-label="Drag and drop image">
         <p>Drag & Drop image here or click to upload</p>
-        <input type="file" id="myFile" name="image" onchange="previewFile()">
+        <input type="file" id="myFile" name="image" accept="image/*">
+        <span id="file-error" class="file-error"></span>
         <img id="preview" src="{{ url_for('static', filename='images/placeholder_1.jpg') }}" alt="Preview">
       </div>
 
@@ -57,7 +58,7 @@
       </select>
     </div>
 
-    <button type="button" onclick="submitForm()">Execute Operation</button>
+    <button type="button" id="execute-btn">Execute Operation</button>
   </div>
 
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
