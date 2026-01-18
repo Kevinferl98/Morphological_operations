@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from app.morphological_operations import (
+from app.domain.morphological_operations import (
     dilate, erode, opening, closing,
     top_hat, bottom_hat, contour_extraction,
     ImageType, create_structuring_element
