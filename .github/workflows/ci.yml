@@ -31,4 +31,4 @@ jobs:
         working-directory: backend
         run: |
           echo "Running pytest with coverage..."
-          python -m pytest backend/tests --cov=app --cov-report=term-missing --cov-fail-under=80
+          python -m pytest tests --cov=app --cov-report=term-missing --cov-fail-under=80
