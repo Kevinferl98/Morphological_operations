@@ -1,35 +1,45 @@
-# Morphological operations
+# Morphological Operations Web App
 
-Morphological operations represent a suite of techniques in image processing that allow particular structures of an image to emerge or be attenuated.
+Morphological operations are a set of image processing techniques designed to manipulate the structure of images. These operations work by sliding a small matrix, called a structuring element, over the image to enhance, suppress, or extract specific features. This includes classical operations such as dilation, erosion, opening, and closing, as well as more specialized ones like top-hat, bottom-hat, and contour extraction.
 
-Morphological operations work by sliding a structuring element over the image. A structuring element is a matrix that defines the region of pixels to be used to process each pixel of the image. The central pixel of the structuring element identifies the pixel of the image beign processed.
+This project provides a web-based interface that allows users to upload images, select the desired morphological operation, and configure the shape and size of the structuring element. Once submitted, the application processes the image and returns the transformed result.
 
-The array of morphological operations includes dilation, erosion, opening, and closing. When these operations are combined with different structuring elements, they can transform an image in various ways.
+## Architecture
+<p align="center">
+    <img src="Images/architecture.png" alt="Architecture" width="80%"/>
+</p>
 
-## About this project
+The application is structured as a full-stack solution with three main components. The frontend is built using HTML, CSS, and vanilla JavaScript, providing a clean user interface with drag-and-drop image upload and real-time file previews. The backend is powered by Python + Flask, which handles job management, execution of morphological operations, and returning results to the client. Redis serves as a lightweight job store, persisting the state of each image processing task, such as pending, running, completed, or error.
 
-This project involves the development of a web application that enables users to upload an image, select the desired morphological operation, and specify the shape and size of the structuring element to be used. The application then processes the image using the selected operation and structuring element, and returns the processed image as output.
+The frontend and backend are tightly integrated: the frontend sends job requests to Flask endpoints, and then polls Redis via the backend to determine job status.
+## Technical Decisions
 
-The web application has been developed using Flask. The morphological operations have been manually implemented in Python. 
+For job management, tasks are stored in Redis with a defined time-to-live (TTL). This allows asynchronous processing of potentially long-running operations without blocking the main application. The frontend periodically polls the backend to check the job status, implementing an exponential backoff strategy to reduce unnecessary network requests and server load.
 
-## How to run it
+On the frontend side, the user experience has been prioritized with drag-and-drop functionality, immediate file previews, and input validation for file type and size. This ensures that only appropriate images are submitted, reducing errors and server load.
 
-In order to execute this project using Docker, it a prerequisite to have Docker installed on your system.
+Flask was chosen for the backend because of its lightweight nature and minimal overhead. 
 
-The project can be run simply by executing the following command:
+The project includes a GitHub Actions workflow that runs automated tests and checks test coverage on every push and pull request. This ensures code quality and reliability.
+
+The entire application is containerized using Docker, which guarantees a consistent environment across development and production systems.
+
+## Running the Application
+
+To run this project, you need to have Docker installed. Launching the application is straightforward. Simply execute:
 
 ```
 docker-compose up -d
 ```
-Executing this command will initiate and run the container for the web application.
 
-Then, you can access the web application by navigating to the following URL: http://localhost:5000
+This command will start the containers for both the Flask web application and Redis. Once the containers are running, the web interface can be accessed at [http://localhost:8000](http://localhost:8000).
 
-## How to use it
+## Using the Application
 
-After uploading an image, you will have the opportunity to choose the desired operation, as well as the shape and size of the structuring element.
+Start by dragging and dropping an image into the designated area or clicking to upload a file. Then, select the desired morphological operation, choose the structuring element’s shape and size, and click the "Execute Operation" button. The backend will process the image asynchronously, and the processed result will be displayed once ready.
 
-Once these selections have been made, you can proceed by submitting the request. As a result, you will receive the image processed based on the choices made.
+This demo showcases edge extraction from a black-and-white image. By selecting the "Extract Edges" operation, the application highlights the contours of shapes present in the image.
+
 <p align="center">
 <img src="Images/Demo.gif" alt="Demo" width="80%"/>
 </p>
