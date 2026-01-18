@@ -22,7 +22,7 @@ Flask was chosen for the backend because of its lightweight nature and minimal o
 
 The project includes a GitHub Actions workflow that runs automated tests and checks test coverage on every push and pull request. This ensures code quality and reliability.
 
-The entire application is containerized using Docker, which guarantees a consistent environment across development and production systems.
+The entire application is containerized using Docker, which guarantees a consistent environment.
 
 ## Running the Application
 
