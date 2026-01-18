@@ -12,9 +12,6 @@ jobs:
   test:
     name: Run tests
     runs-on: ubuntu-latest
-      
-    strategy: 
-      fail-fast: false
 
     steps:
       - uses: actions/checkout@v6
@@ -31,6 +28,7 @@ jobs:
           pip install --prefer-binary -r backend/requirements.txt
 
       - name: Run tests
+        working-directory: backend
         run: |
           echo "Running pytest with coverage..."
           python -m pytest backend/tests --cov=app --cov-report=term-missing --cov-fail-under=80
