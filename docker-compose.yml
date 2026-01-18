@@ -1,5 +1,19 @@
 services:
   web:
     build: .
+    container_name: flask_app
     ports: 
-      - "5000:5000"
+      - "8000:8000"
+    environment:
+      - FLASK_ENV=dev
+      - REDIS_URL=redis://redis:6379/0
+      - MAX_WORKERS=4
+    depends_on:
+      - redis
+    
+  redis:
+    image: redis:8.4.0-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
