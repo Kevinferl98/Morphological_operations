@@ -41,5 +41,5 @@ Start by dragging and dropping an image into the designated area or clicking to 
 This demo showcases edge extraction from a black-and-white image. By selecting the "Extract Edges" operation, the application highlights the contours of shapes present in the image.
 
 <p align="center">
-<img src="Images/Demo.gif" alt="Demo" width="80%"/>
+<img src="Images/contour_extraction.gif" alt="contour_extraction" width="80%"/>
 </p>
