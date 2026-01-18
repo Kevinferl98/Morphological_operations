@@ -2,10 +2,13 @@ from flask import Blueprint, request, jsonify, render_template
 from app.extensions import executor
 from app.services.job_service import JobService
 from app.services.image_processing_service import ImageProcessingService
+import logging
+from app.exceptions import NotFoundError, BadRequestError
 
 bp = Blueprint("api", __name__)
 job_service = JobService()
 image_service = ImageProcessingService()
+logger = logging.getLogger(__name__)
 
 @bp.route("/")
 def home():
@@ -15,26 +18,23 @@ def home():
 def process_image():
     file = request.files.get("image")
     if not file:
-        return jsonify({"error": "No file uploaded"}), 400
+        logger.warning("No file uploaded")
+        raise BadRequestError("No file uploaded")
 
-    try:
-        image_data = image_service.process(
-            file.read(),
-            dict(request.form)
-        )
-        return jsonify({"image_data": image_data})
-
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 422
-    except Exception as e:
-        print(e)
-        return jsonify({"error": "Internal server error"}), 500
+    image_data = image_service.process(
+        file.read(),
+        dict(request.form)
+    )
+    
+    logger.info("Image processde successfully")
+    return jsonify({"image_data": image_data})
 
 @bp.route("/jobs", methods=["POST"])
 def create_job():
     file = request.files.get("image")
     if not file:
-        return "No file uploaded", 400
+        logger.warning("No file uploaded")
+        raise BadRequestError("No file uploaded")
     
     job_id = job_service.create_job(
         file.read(),
@@ -49,7 +49,7 @@ def get_job(job_id):
     job = job_service.jobs.get(job_id)
 
     if not job:
-        return jsonify({"error": "Job not found"}), 404
+        raise NotFoundError("Job not found")
     
     if job["status"] == "done":
         return jsonify({
