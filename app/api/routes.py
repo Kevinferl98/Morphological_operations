@@ -46,21 +46,15 @@ def create_job():
 
 @bp.route("/jobs/<job_id>", methods=["GET"])
 def get_job(job_id):
-    job = job_service.jobs.get(job_id)
+    job = job_service.get_job(job_id)
 
     if not job:
         raise NotFoundError("Job not found")
     
+    response = {"status": job["status"]}
     if job["status"] == "done":
-        return jsonify({
-            "status": "done",
-            "image_data": job["result"]
-        })
+        response["image_data"] = job.get("result")
+    elif job["status"] == "error":
+        response["message"] = job.get("error")
     
-    if job["status"] == "error":
-        return jsonify({
-            "status": "error",
-            "message": job["error"]
-        })
-    
-    return jsonify({"status": job["status"]})
+    return jsonify(response)
