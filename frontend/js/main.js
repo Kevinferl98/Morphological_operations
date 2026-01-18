@@ -1,3 +1,5 @@
+const API_BASE_URL = "/api";
+
 const dropZone = document.getElementById("drop-zone");
 const fileInput = document.getElementById("myFile");
 const preview = document.getElementById("preview");
@@ -63,7 +65,7 @@ function submitForm() {
     resultImg.style.display = "none";
     updateLoaderPosition();
 
-    fetch("/jobs", { method: "POST", body: formData })
+    fetch(`${API_BASE_URL}/jobs`, { method: "POST", body: formData })
         .then(res => {
             if (!res.ok) throw new Error("Server error");
             return res.json();
@@ -95,7 +97,7 @@ window.addEventListener("resize", updateLoaderPosition);
 function pollJobStatus(jobId, attempt = 0) {
     const delay = Math.min(5000, 1000 * Math.pow(2, attempt));
     setTimeout(() => {
-        fetch(`/jobs/${jobId}`)
+        fetch(`${API_BASE_URL}/jobs/${jobId}`)
             .then(res => {
                 if (!res.ok) throw new Error("Job status error");
                 return res.json();

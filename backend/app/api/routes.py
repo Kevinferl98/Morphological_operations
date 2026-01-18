@@ -10,10 +10,6 @@ job_service = JobService()
 image_service = ImageProcessingService()
 logger = logging.getLogger(__name__)
 
-@bp.route("/")
-def home():
-    return render_template('index.html')
-
 @bp.route("/process_image", methods=["POST"])
 def process_image():
     file = request.files.get("image")

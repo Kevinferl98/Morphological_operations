@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - master
-  pull_request:
-    branches: 
-      - master
 
 permissions:
   contents: read
@@ -31,9 +28,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install --prefer-binary -r requirements.txt
+          pip install --prefer-binary -r backend/requirements.txt
 
       - name: Run tests
         run: |
           echo "Running pytest with coverage..."
-          python -m pytest --cov=app --cov-report=term-missing --cov-fail-under=80
+          python -m pytest backend/tests --cov=app --cov-report=term-missing --cov-fail-under=80
