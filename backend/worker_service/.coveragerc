@@ -1,0 +1,9 @@
+[run]
+omit =
+    worker/config.py
+    worker/logging_config.py
+    */__init__.py
+    env/*
+    venv/*
+[report]
+skip_empty = True
