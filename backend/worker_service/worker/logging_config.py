@@ -1,8 +1,6 @@
 import logging
 import logging.config
-import os
-
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+from worker.config import config
 
 LOGGING_CONFIG = {
     "version": 1,
@@ -23,12 +21,13 @@ LOGGING_CONFIG = {
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "default"
+            "formatter": "default",
+            "level": config.LOG_LEVEL
         }
     },
 
     "root": {
-        "level": LOG_LEVEL,
+        "level": config.LOG_LEVEL,
         "handlers": ["console"]
     }
 }

@@ -1,58 +1,52 @@
-import pytest
-from worker.consumer import handle_job
-from unittest.mock import MagicMock, patch
+import unittest
+from unittest.mock import patch, MagicMock
+import signal
+from worker.consumer import main
 
-@pytest.fixture
-def mock_redis():
-    mock = MagicMock()
-    job_data = {
-        "image": "fake_image_base64",
-        "params": {"operation": "dilate", "shape": "rect", "sizeX": "3", "sizeY": "3"},
-        "status": "pending",
-        "result": None
-    }
-    mock.get_job.return_value = job_data
-    return mock
+class TestConsumerMain(unittest.TestCase):
 
-@patch("worker.consumer.redis_client", new_callable=lambda: MagicMock())
-@patch("worker.consumer.process_image", return_value="encoded_result")
-def test_handle_job_success(mock_process, mock_redis_client):
-    
-    mock_redis_client.get_job.return_value = {
-        "image": "fake_image",
-        "params": {"operation": "dilate", "shape": "rect", "sizeX": "3", "sizeY": "3"},
-        "status": "pending",
-        "result": None
-    }
+    @patch('worker.consumer.RedisClient')
+    @patch('worker.consumer.RabbitMQConsumer')
+    @patch('worker.consumer.setup_logging')
+    def test_main_initialization(self, mock_setup_logging, mock_rabbitmq, mock_redis):
+        mock_consumer_instance = mock_rabbitmq.return_value
+        
+        main()
 
-    handle_job("job123")
-   
-    mock_process.assert_called_once()
-    
-    mock_redis_client.update_job.assert_called_once()
-    updated_job = mock_redis_client.update_job.call_args[0][1]
-    assert updated_job["status"] == "done"
-    assert updated_job["result"] == "encoded_result"
+        mock_setup_logging.assert_called_once()
+        mock_redis.assert_called_once()
+        mock_rabbitmq.assert_called_once()
+        mock_consumer_instance.start.assert_called_once()
 
-@patch("worker.consumer.redis_client", new_callable=lambda: MagicMock())
-@patch("worker.consumer.process_image", side_effect=Exception("fail"))
-def test_handle_job_failure(mock_process, mock_redis_client):
-    mock_redis_client.get_job.return_value = {
-        "image": "fake_image",
-        "params": {"operation": "dilate", "shape": "rect", "sizeX": "3", "sizeY": "3"},
-        "status": "pending",
-        "result": None
-    }
+    @patch('worker.consumer.process_job_logic')
+    @patch('worker.consumer.RedisClient')
+    @patch('worker.consumer.RabbitMQConsumer')
+    def test_on_message_received_callback(self, mock_rabbitmq, mock_redis, mock_process_logic):
+        mock_redis_instance = mock_redis.return_value
+        
+        main()
+        
+        args, kwargs = mock_rabbitmq.call_args
+        callback_function = kwargs.get('callback')
 
-    handle_job("job123")
-    mock_process.assert_called_once()
-    updated_job = mock_redis_client.update_job.call_args[0][1]
-    assert updated_job["status"] == "error"
-    assert "fail" in updated_job["error"]
+        test_job_id = "12345"
+        callback_function(test_job_id)
 
-def test_handle_job_not_found(mock_redis):
-    with patch("worker.consumer.redis_client", mock_redis):
-        mock_redis.get_job.return_value = None
-    
-        with pytest.raises(RuntimeError, match="Job not found"):
-            handle_job("job_not_exist")
+        mock_process_logic.assert_called_once_with(test_job_id, mock_redis_instance)
+
+    @patch('worker.consumer.sys.exit')
+    @patch('worker.consumer.RabbitMQConsumer')
+    def test_stop_handler(self, mock_rabbitmq, mock_exit):
+        mock_consumer_instance = mock_rabbitmq.return_value
+        
+        main()
+        
+        with patch('signal.signal') as mock_signal:
+            main()
+            args, kwargs = mock_signal.call_args
+            stop_handler = args[1]
+            
+            stop_handler(signal.SIGINT, None)
+
+            mock_consumer_instance.stop.assert_called()
+            mock_exit.assert_called_once_with(0)

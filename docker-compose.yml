@@ -20,6 +20,7 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/0
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      APP_ENV: development
     depends_on:
       rabbitmq:
         condition: service_healthy

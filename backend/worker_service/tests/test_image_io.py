@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-import cv2
 import io
 import base64
 from PIL import Image

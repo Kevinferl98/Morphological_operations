@@ -1,27 +1,31 @@
 import logging
+import signal
+import sys
 from worker.rabbitmq_consumer import RabbitMQConsumer
 from worker.redis_client import RedisClient
-from worker.image_processor import process_image
+from worker.image_processor import process_job_logic
+from worker.logging_config import setup_logging
 
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-redis_client = RedisClient()
+def main():
+    setup_logging()
+    redis_client = RedisClient()
 
-def handle_job(job_id):
-    job = redis_client.get_job(job_id)
-    if not job:
-        raise RuntimeError("Job not found")
+    def on_message_received(job_id):
+        process_job_logic(job_id, redis_client)
 
-    try:
-        result = process_image(job["image"], job["params"])
-        job["status"] = "done"
-        job["result"] = result
-    except Exception as e:
-        job["status"] = "error"
-        job["error"] = str(e)
+    consumer = RabbitMQConsumer(callback=on_message_received)
 
-    redis_client.update_job(job_id, job)
+    def stop_handler(sig, frame):
+        logger.info("Shutdown signal received. Closing connections...")
+        consumer.stop()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, stop_handler)
+    signal.signal(signal.SIGTERM, stop_handler)
+
+    consumer.start()
 
 if __name__ == "__main__":
-    consumer = RabbitMQConsumer(handle_job)
-    consumer.start()
+    main()

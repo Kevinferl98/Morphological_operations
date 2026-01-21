@@ -1,37 +1,47 @@
-import pytest
-from unittest.mock import patch, MagicMock
-from worker.image_processor import process_image
-from worker.exceptions import ValidationError
+import unittest
+from unittest.mock import MagicMock, patch
+from worker.image_processor import process_job_logic
 
-def test_process_image_success():
-    fake_encoded_img = "ZmFrZS1pbWFnZS1kYXRh"
-    params = {
-        "operation": "dilate",
-        "shape": "rect",
-        "sizeX": "3",
-        "sizeY": "3"
-    }
+class TestImageProcessor(unittest.TestCase):
 
-    with patch("worker.image_processor.load_image_from_bytes") as mock_load, \
-         patch("worker.image_processor.morph") as mock_morph, \
-         patch("worker.image_processor.encode_image") as mock_encode:
+    def setUp(self):
+        self.mock_redis = MagicMock()
+        self.job_id = "test-123"
+
+    def test_job_not_found(self):
+        self.mock_redis.get_job.return_value = None
         
-        mock_load.return_value = MagicMock()
-        mock_morph.classify_image_array.return_value = "GRAY"
-        mock_morph.create_structuring_element.return_value = MagicMock()
-        mock_morph.execute_operation.return_value = MagicMock()
-        mock_encode.return_value = "encoded_result"
-
-        result = process_image(fake_encoded_img, params)
-
-        assert result == "encoded_result"
-        mock_morph.execute_operation.assert_called_once()
-
-def test_process_image_invalid_type():
-    with patch("worker.image_processor.load_image_from_bytes"), \
-         patch("worker.image_processor.morph") as mock_morph:
+        process_job_logic(self.job_id, self.mock_redis)
         
-        mock_morph.classify_image_array.return_value = mock_morph.ImageType.UNDEFINED
+        self.mock_redis.get_job.assert_called_with(self.job_id)
+        self.mock_redis.update_job.assert_not_called()
+
+    @patch('worker.image_processor._execute_operation')
+    def test_process_success(self, mock_execute):
+        job_data = {
+            "image": "base64string",
+            "params": {"op": "dilation"},
+            "status": "pending"
+        }
+        self.mock_redis.get_job.return_value = job_data
+        mock_execute.return_value = "encoded_result_string"
+
+        process_job_logic(self.job_id, self.mock_redis)
+
+        self.assertEqual(job_data["status"], "done")
+        self.assertEqual(job_data["result"], "encoded_result_string")
+        self.assertIsNone(job_data["error"])
+        self.mock_redis.update_job.assert_called_once_with(self.job_id, job_data)
+
+    @patch('worker.image_processor._execute_operation')
+    def test_process_failure(self, mock_execute):
+        job_data = {"image": "...", "params": {}}
+        self.mock_redis.get_job.return_value = job_data
         
-        with pytest.raises(ValidationError):
-            process_image("ZmFrZQ==", {"operation": "dilate"})
+        mock_execute.side_effect = Exception("Errore generico")
+
+        process_job_logic(self.job_id, self.mock_redis)
+
+        self.assertEqual(job_data["status"], "error")
+        self.assertEqual(job_data["error"], "Errore generico")
+        self.mock_redis.update_job.assert_called_once()
