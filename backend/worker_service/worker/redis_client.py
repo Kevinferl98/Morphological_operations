@@ -1,13 +1,10 @@
 import json
-import os
 import redis
-
-REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
-
+from worker.config import config
 
 class RedisClient:
     def __init__(self):
-        self.redis = redis.Redis.from_url(REDIS_URL)
+        self.redis = redis.Redis.from_url(config.REDIS_URL)
 
     def get_job(self, job_id):
         data = self.redis.get(f"job:{job_id}")
