@@ -21,11 +21,15 @@ class RabbitMQConsumer:
         self.channel.queue_declare(queue=QUEUE_NAME, durable=True)
 
     def start(self):
-        logger.info("Worker listening on queue %s", QUEUE_NAME)
+        logger.info("Worker started. Listening for messages on [%s]...", QUEUE_NAME)
 
         def on_message(ch, method, properties, body):
             try:
                 payload = json.loads(body)
+                job_id = payload.get("job_id", "unknown")
+
+                logger.info("Message received from queue: %s with job_id %s", QUEUE_NAME, job_id)
+                
                 self.callback(payload["job_id"])
                 ch.basic_ack(delivery_tag=method.delivery_tag)
             except Exception as e:
