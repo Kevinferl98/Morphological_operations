@@ -1,15 +1,31 @@
 services:
-  backend:
-    build: ./backend
-    container_name: flask_app
+  api-service:
+    build: ./backend/api_service
+    container_name: api_service
     ports: 
       - "8000:8000"
     environment:
-      - FLASK_ENV=dev
-      - REDIS_URL=redis://redis:6379/0
-      - MAX_WORKERS=4
+      FLASK_ENV: dev
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
     depends_on:
-      - redis
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker_service:
+    build: ./backend/worker_service
+    container_name: worker_service
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      APP_ENV: development
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   frontend:
     build: ./frontend
@@ -17,11 +33,28 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - backend
+      - api-service
     
   redis:
     image: redis:8.4.0-alpine
     container_name: redis
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     command: ["redis-server", "--save", "", "--appendonly", "no"]
+
+  rabbitmq:
+    image: rabbitmq:4.2.2-management
+    container_name: rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    ports:
+      - "5672:5672"
+      - "15672:15672"

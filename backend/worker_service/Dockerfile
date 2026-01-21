@@ -1,6 +1,6 @@
-FROM python:3.14.2
+FROM python:3.14-slim
 
-WORKDIR /app
+WORKDIR /worker
 
 COPY requirements.txt .
 
@@ -18,12 +18,6 @@ RUN apt-get update && \
 
 COPY . .
 
-ENV FLASK_ENV=dev
-ENV FLASK_APP=app
 ENV PYTHONUNBUFFERED=1
-ENV PORT=8000
-ENV REDIS_URL=redis://redis:6379/0
 
-EXPOSE 8000
-
-CMD ["gunicorn", "-b", "0.0.0.0:8000", "run:app", "--workers", "4", "--threads", "2", "--timeout", "120"]
+CMD ["python", "-m", "worker.consumer"]

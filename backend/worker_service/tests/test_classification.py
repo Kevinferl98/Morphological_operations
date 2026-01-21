@@ -1,5 +1,5 @@
 import numpy as np
-from app.domain.morphological_operations import classify_image_array, ImageType
+from worker.domain.morphological_operations import classify_image_array, ImageType
 
 def test_binary_image():
     img = np.array([[0, 255], [255, 0]], dtype=np.uint8)
