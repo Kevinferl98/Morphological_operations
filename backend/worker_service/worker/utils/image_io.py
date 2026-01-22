@@ -12,7 +12,7 @@ def encode_image(image: np.ndarray) -> str:
 
     buffer = io.BytesIO()
     pil_img.save(buffer, format="PNG")
-    return base64.b64encode(buffer.getvalue()).decode("utf-8")
+    return buffer.getvalue()
 
 def load_image_from_bytes(file_bytes):
     array = np.frombuffer(file_bytes, np.uint8)

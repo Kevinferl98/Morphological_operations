@@ -1,36 +1,42 @@
 import uuid
 import logging
-import redis
 import json
-import os
-import base64
-
+from app.services.redis_client import RedisClient
+from app.services.minio_client import MinioClient
 from app.services.rabbitmq_publisher import RabbitMQPublisher
+from app.exceptions import BadRequestError
 
 logger = logging.getLogger(__name__)
 
-REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
-
 class JobService:
-    def __init__(self, publisher=None, redis_client=None):
-        self.redis = redis_client or redis.Redis.from_url(REDIS_URL)
-        self.publisher = publisher or RabbitMQPublisher()
+    def __init__(self):
+        self.redis = RedisClient()
+        self.publisher = RabbitMQPublisher()
+        self.minio_client = MinioClient()
 
-    def create_job(self, file_bytes, form_data, ttl_seconds=3600):
+    def generate_upload_params(self, extensions="png"):
+        filename = f"{uuid.uuid4()}.{extensions}"
+        url = self.minio_client.generate_presigned_upload_url(filename)
+        return url, filename
+
+    def create_job(self, image_key: str, params: dict):
+        try:
+            self.minio_client.head_object(image_key)
+        except Exception:
+            raise BadRequestError("Uploaded image not found")
+
         job_id = str(uuid.uuid4())
         job_key = f"job:{job_id}"
 
-        encoded_image = base64.b64encode(file_bytes).decode("utf-8")
-
         job_data = {
             "status": "pending",
-            "image": encoded_image,
-            "params": form_data,
+            "image_key": image_key,
+            "params": params,
             "result": None,
             "error": None
         }
 
-        self.redis.set(job_key, json.dumps(job_data), ex=ttl_seconds)
+        self.redis.create_job(job_key, job_data)
         self.publisher.publish_job(job_id)
 
         logger.info("Job %s created", job_id)
@@ -38,7 +44,12 @@ class JobService:
 
     def get_job(self, job_id):
         job_key = f"job:{job_id}"
-        job_data = self.redis.get(job_key)
-        if not job_data:
+        job_data_raw = self.redis.get_job(job_key)
+        if not job_data_raw:
             return None
-        return json.loads(job_data)
+        
+        job_data = json.loads(job_data_raw)
+
+        if job_data.get("status") == "done" and job_data.get("result_key"):
+            job_data["result_url"] = self.minio_client.generate_presigned_download_url(job_data["result_key"])
+        return job_data

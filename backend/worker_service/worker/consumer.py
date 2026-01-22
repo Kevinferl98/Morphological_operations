@@ -5,15 +5,17 @@ from worker.rabbitmq_consumer import RabbitMQConsumer
 from worker.redis_client import RedisClient
 from worker.image_processor import process_job_logic
 from worker.logging_config import setup_logging
+from worker.minio_client import MinioClient
 
 logger = logging.getLogger(__name__)
 
 def main():
     setup_logging()
     redis_client = RedisClient()
+    minio_client = MinioClient()
 
     def on_message_received(job_id):
-        process_job_logic(job_id, redis_client)
+        process_job_logic(job_id, redis_client, minio_client)
 
     consumer = RabbitMQConsumer(callback=on_message_received)
 
