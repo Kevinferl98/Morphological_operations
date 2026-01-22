@@ -6,7 +6,7 @@ This project provides a web-based interface that allows users to upload images, 
 
 ## Architecture
 <p align="center">
-    <img src="Images/architecture.png" alt="Architecture" width="80%"/>
+    <img src="Images/architecture.jpg" alt="Architecture" width="80%"/>
 </p>
 
 The application is structured as a full-stack solution with three main components. The frontend is built using HTML, CSS, and vanilla JavaScript, providing a clean user interface with drag-and-drop image upload and real-time file previews. The backend is powered by Python + Flask, which handles job management, execution of morphological operations, and returning results to the client. Redis serves as a lightweight job store, persisting the state of each image processing task, such as pending, running, completed, or error.
