@@ -12,9 +12,12 @@ class Config:
     
     LOG_LEVEL = "DEBUG" if DEBUG else os.getenv("LOG_LEVEL", "INFO")
 
-    MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "minio:9000")
-    MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "admin")
-    MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "admin123")
+    MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "http://minio:9000")
+    MINIO_ACCESS_KEY = os.getenv("MINIO_ROOT_USER")
+    MINIO_SECRET_KEY = os.getenv("MINIO_ROOT_PASSWORD")
     MINIO_BUCKET = os.getenv("MINIO_BUCKET", "images")
+
+    if not MINIO_ACCESS_KEY or not MINIO_SECRET_KEY:
+        raise ValueError("MINIO_ROOT_USER and MINIO_ROOT_PASSWORD must be set in environment")
 
 config = Config()
