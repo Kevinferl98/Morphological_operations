@@ -49,29 +49,57 @@ function previewFile(file) {
 
 document.getElementById("execute-btn").addEventListener("click", submitForm);
 
-function submitForm() {
+async function submitForm() {
     if (!checkData()) return;
-
-    const formData = new FormData();
-    const [sizeX, sizeY] = document.getElementById("dimensions").value.split("x").map(Number);
-
-    formData.append("image", fileInput.files[0]);
-    formData.append("operation", document.getElementById("operation").value);
-    formData.append("shape", document.getElementById("shape").value);
-    formData.append("sizeX", sizeX);
-    formData.append("sizeY", sizeY);
 
     loader.style.display = "block";
     resultImg.style.display = "none";
     updateLoaderPosition();
 
-    fetch(`${API_BASE_URL}/jobs`, { method: "POST", body: formData })
-        .then(res => {
-            if (!res.ok) throw new Error("Server error");
-            return res.json();
-        })
-        .then(data => pollJobStatus(data.job_id))
-        .catch(err => handleError("Error submitting job", err));
+    try {
+        const uploadRes = await fetch(`${API_BASE_URL}/upload-url`)
+        if (!uploadRes.ok) throw new Error("Failed to get upload URL");
+        const { upload_url, image_key } = await uploadRes.json();
+
+        const file = fileInput.files[0];
+        const uploadPut = await fetch(upload_url, {
+            method: "PUT",
+            headers: {
+                "Content-Type": file.type,
+            },
+            body: file,
+        });
+
+        if (!uploadPut.ok) throw new Error("Upload to bucket failed");
+
+        const [sizeX, sizeY] = document
+            .getElementById("dimensions")
+            .value.split("x")
+            .map(Number);
+
+        const jobPayload = {
+            image_key,
+            params: {
+                operation: document.getElementById("operation").value,
+                shape: document.getElementById("shape").value,
+                sizeX,
+                sizeY,
+            },
+        };
+
+        const jobRes = await fetch(`${API_BASE_URL}/jobs`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(jobPayload),
+        });
+
+        if (!jobRes.ok) throw new Error("Job creation failed");
+
+        const { job_id } = await jobRes.json();
+        pollJobStatus(job_id);
+    } catch (err) {
+        handleError("Error submitting job", err);
+    }
 }
 
 function checkData() {
@@ -96,24 +124,26 @@ window.addEventListener("resize", updateLoaderPosition);
 
 function pollJobStatus(jobId, attempt = 0) {
     const delay = Math.min(5000, 1000 * Math.pow(2, attempt));
-    setTimeout(() => {
-        fetch(`${API_BASE_URL}/jobs/${jobId}`)
-            .then(res => {
-                if (!res.ok) throw new Error("Job status error");
-                return res.json();
-            })
-            .then(data => {
-                if (data.status === "done") {
-                    loader.style.display = "none";
-                    resultImg.src = "data:image/png;base64," + data.image_data;
-                    resultImg.style.display = "block";
-                } else if (data.status === "error") {
-                    handleError("Error processing image", data.message);
-                } else {
-                    pollJobStatus(jobId, attempt + 1);
-                }
-            })
-            .catch(err => handleError("Error checking job status", err));
+
+    setTimeout(async () => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/jobs/${jobId}`);
+            if (!res.ok) throw new Error("Job status error");
+
+            const data = await res.json();
+
+            if (data.status === "done") {
+                loader.style.display = "none";
+                resultImg.src = data.result_url;
+                resultImg.style.display = "block";
+            } else if (data.status === "error") {
+                handleError("Error processing image", data.message);
+            } else {
+                pollJobStatus(jobId, attempt + 1);
+            }
+        } catch (err) {
+            handleError("Error checking job status", err);
+        }
     }, delay);
 }
 

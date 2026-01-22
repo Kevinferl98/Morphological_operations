@@ -14,14 +14,14 @@ def process_job_logic(job_id, redis_client, minio_client):
     try:
         output_key = _execute_operation(
             job_id=job_id,
-            input_key=job["input_key"],
+            image_key=job["image_key"],
             params=job["params"],
             minio_client=minio_client
         )
 
         job.update({
             "status": "done",
-            "result": output_key,
+            "result_key": output_key,
             "error": None
         })
     except Exception as e:
@@ -33,8 +33,8 @@ def process_job_logic(job_id, redis_client, minio_client):
 
     redis_client.update_job(job_id, job)
 
-def _execute_operation(job_id: str, input_key: str, params: dict, minio_client):
-    image_bytes = minio_client.get_bytes(input_key)
+def _execute_operation(job_id: str, image_key: str, params: dict, minio_client):
+    image_bytes = minio_client.get_bytes(image_key)
     image = load_image_from_bytes(image_bytes)
     
     image_type = morph.classify_image_array(image)

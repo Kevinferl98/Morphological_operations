@@ -15,7 +15,7 @@ class MinioClient:
     def generate_presigned_upload_url(self, image_key: str, expires_in=3600):
         return self.client.generate_presigned_url(
             "put_object",
-            Params={"Bucket": config.MINIO_BUCKET, "Key": image_key, "ContentType": "image/png"},
+            Params={"Bucket": config.MINIO_BUCKET, "Key": image_key},
             ExpiresIn=expires_in
         )
     

@@ -19,7 +19,7 @@ class JobService:
         url = self.minio_client.generate_presigned_upload_url(filename)
         return url, filename
 
-    def create_job(self, image_key: str, params: dict, ttl_seconds=3600):
+    def create_job(self, image_key: str, params: dict):
         try:
             self.minio_client.head_object(image_key)
         except Exception:
@@ -36,7 +36,7 @@ class JobService:
             "error": None
         }
 
-        self.redis.set(job_key, json.dumps(job_data), ex=ttl_seconds)
+        self.redis.create_job(job_key, job_data)
         self.publisher.publish_job(job_id)
 
         logger.info("Job %s created", job_id)
@@ -44,7 +44,7 @@ class JobService:
 
     def get_job(self, job_id):
         job_key = f"job:{job_id}"
-        job_data_raw = self.redis.get(job_key)
+        job_data_raw = self.redis.get_job(job_key)
         if not job_data_raw:
             return None
         
