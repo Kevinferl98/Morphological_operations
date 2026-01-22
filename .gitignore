@@ -9,3 +9,10 @@ __pycache__/
 
 # Test articats
 .pytest_cache
+
+*.tfvars
+*.tfvars.json
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform*
