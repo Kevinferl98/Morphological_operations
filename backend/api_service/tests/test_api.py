@@ -20,27 +20,38 @@ def test_create_job_ok(client):
     mock_service.create_job.return_value = "fake-uuid-123"
 
     data = {
-        "image": (io.BytesIO(b"fake-image-bytes"), "test.png"),
-        "operation": "dilate",
-        "sizeX": "3"
+        "image_key": "test-image-key.png",
+        "params": {
+            "operation": "dilate",
+            "sizeX": "3",
+            "sizeY": "3"
+        }
     }
 
     response = test_client.post(
         "/jobs",
-        data=data,
-        content_type="multipart/form-data"
+        json=data
     )
 
     assert response.status_code == 202
     assert response.get_json()["job_id"] == "fake-uuid-123"
-    mock_service.create_job.assert_called_once()
+    mock_service.create_job.assert_called_once_with(
+        image_key="test-image-key.png",
+        params={"operation": "dilate", "sizeX": "3", "sizeY": "3"}
+    )
 
-def test_create_job_no_file(client):
+def test_create_job_no_image_key(client):
     test_client, _ = client
-    response = test_client.post("/jobs", data={"operation": "dilate"})
+    
+    payload = {"params": {"operation": "dilate", "sizeX": "3", "sizeY": "3"}}
+
+    response = test_client.post(
+        "/jobs",
+        json=payload
+    )
     
     assert response.status_code == 400
-    assert "No file uploaded" in response.get_json()["error"]
+    assert "image_key is required" in response.get_json()["error"]
 
 def test_get_job_pending(client):
     test_client, mock_service = client
@@ -62,7 +73,7 @@ def test_get_job_done(client):
 
     mock_service.get_job.return_value = {
         "status": "done",
-        "result": "base64_encoded_string_data"
+        "result_url": "test_image_key_result"
     }
 
     response = test_client.get("/jobs/abc")
@@ -70,7 +81,7 @@ def test_get_job_done(client):
     assert response.status_code == 200
     data = response.get_json()
     assert data["status"] == "done"
-    assert data["image_data"] == "base64_encoded_string_data"
+    assert data["result_url"] == "test_image_key_result"
 
 def test_get_job_error(client):
     test_client, mock_service = client
