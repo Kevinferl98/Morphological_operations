@@ -20,7 +20,7 @@ class TestImageProcessor(unittest.TestCase):
     @patch('worker.image_processor._execute_operation')
     def test_process_success(self, mock_execute):
         job_data = {
-            "input_key": "raw/input.png",
+            "image_key": "raw/input.png",
             "params": {"op": "dilation"},
             "status": "pending"
         }
@@ -30,12 +30,12 @@ class TestImageProcessor(unittest.TestCase):
         process_job_logic(self.job_id, self.mock_redis, self.mock_minio)
 
         self.assertEqual(job_data["status"], "done")
-        self.assertEqual(job_data["result"], "jobs/test-123/output.png")
+        self.assertEqual(job_data["result_key"], "jobs/test-123/output.png")
         self.assertIsNone(job_data["error"])
 
         mock_execute.asset_called_once_with(
             job_id=self.job_id,
-            input_key="raw/input.png",
+            image_key="raw/input.png",
             params=job_data["params"],
             minio_client=self.mock_minio
         )
@@ -44,7 +44,7 @@ class TestImageProcessor(unittest.TestCase):
 
     @patch('worker.image_processor._execute_operation')
     def test_process_failure(self, mock_execute):
-        job_data = {"input_key": "key", "params": {}}
+        job_data = {"image_key": "key", "params": {}}
         self.mock_redis.get_job.return_value = job_data
         
         mock_execute.side_effect = Exception("Errore generico")

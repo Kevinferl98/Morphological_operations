@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 import io
-import base64
 from PIL import Image
 from worker.utils.image_io import encode_image, load_image_from_bytes
 
@@ -11,17 +10,16 @@ class TestImageIO:
         img_array = np.zeros((10, 10), dtype=np.uint8)
         encoded = encode_image(img_array)
         
-        assert isinstance(encoded, str)
-        decoded_bytes = base64.b64decode(encoded)
-        assert decoded_bytes.startswith(b'\x89PNG')
+        assert isinstance(encoded, bytes)
+        assert encoded.startswith(b'\x89PNG')
 
     def test_encode_image_rgb(self):
         img_array = np.zeros((10, 10, 3), dtype=np.uint8)
         encoded = encode_image(img_array)
         
-        assert isinstance(encoded, str)
-        decoded_bytes = base64.b64decode(encoded)
-        img = Image.open(io.BytesIO(decoded_bytes))
+        assert isinstance(encoded, bytes)
+        assert encoded.startswith(b'\x89PNG')
+        img = Image.open(io.BytesIO(encoded))
         assert img.mode == 'RGB'
 
     def test_load_image_from_bytes_color(self):
