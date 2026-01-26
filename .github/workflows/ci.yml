@@ -22,12 +22,17 @@ jobs:
         with:
           python-version: "3.14"
           cache: pip
+          cache_dependency_path: 'backend/**/requirements.txt'
                 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install ruff
           pip install --prefer-binary -r backend/api_service/requirements.txt
           pip install --prefer-binary -r backend/worker_service/requirements.txt
+
+      - name: Lint with Ruff
+        run: ruff check backend
 
       - name: Run tests
         working-directory: backend

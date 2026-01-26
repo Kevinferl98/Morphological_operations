@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import MagicMock
 from app import create_app
-import io
 
 @pytest.fixture
 def client():
