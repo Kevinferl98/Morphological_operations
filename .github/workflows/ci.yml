@@ -22,7 +22,7 @@ jobs:
         with:
           python-version: "3.14"
           cache: pip
-          cache_dependency_path: 'backend/**/requirements.txt'
+          cache-dependency-path: 'backend/**/requirements.txt'
                 
       - name: Install dependencies
         run: |
