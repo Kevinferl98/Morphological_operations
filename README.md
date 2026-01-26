@@ -1,38 +1,94 @@
 # Morphological Operations Web App
 
+![Python](https://img.shields.io/badge/Python-3.14-blue?logo=python&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Containerized-blue?logo=docker&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-API-black?logo=flask)
+![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Message%20Broker-orange?logo=rabbitmq)
+![Redis](https://img.shields.io/badge/Redis-In--Memory-red?logo=redis)
+![Terraform](https://img.shields.io/badge/Terraform-IaC-purple?logo=terraform)
+
+A full-stack web application for applying morphological image processing operations through an intuitive browser-based interface.
+
 Morphological operations are a set of image processing techniques designed to manipulate the structure of images. These operations work by sliding a small matrix, called a structuring element, over the image to enhance, suppress, or extract specific features. This includes classical operations such as dilation, erosion, opening, and closing, as well as more specialized ones like top-hat, bottom-hat, and contour extraction.
 
-This project provides a web-based interface that allows users to upload images, select the desired morphological operation, and configure the shape and size of the structuring element. Once submitted, the application processes the image and returns the transformed result.
+The application allows users to upload an image, configure the desired operation and structuring element, and asynchronously retrieve the processed result.
 
 ## Architecture
 <p align="center">
     <img src="Images/architecture.jpg" alt="Architecture" width="80%"/>
 </p>
 
-The application is structured as a full-stack solution with three main components. The frontend is built using HTML, CSS, and vanilla JavaScript, providing a clean user interface with drag-and-drop image upload and real-time file previews. The backend is powered by Python + Flask, which handles job management, execution of morphological operations, and returning results to the client. Redis serves as a lightweight job store, persisting the state of each image processing task, such as pending, running, completed, or error.
+The application is structured as a full-stack solution. The Frontend provides a responsive interface that uploads images directly to an S3 bucket using presigned URLs. A Flask API orchestrates the process by registering jobs in Redis and queuing tasks via RabbitMQ, decoupling user requests from heavy computation.
 
-The frontend and backend are tightly integrated: the frontend sends job requests to Flask endpoints, and then polls Redis via the backend to determine job status.
+The actual image processing is handled by a dedicated Worker service. This service consumes tasks from the queue, processes the images from S3, uploads the results back to S3, and updates the final job status in Redis for the frontend to poll.
+
+## Workflow
+
+1. **Frontend**: Requests a Presigned URL from the API and uploads the input image directly to Amazon S3 (or MinIO). It then submits the job parameters to the API.
+2. **API Service**: Persists the job metadata in Redis and publishes a task message to RabbitMQ to initiate asynchronous processing.
+3. **RabbitMQ**: Acts as the message broker, securely queuing jobs and distributing them to available background workers.
+4. **Worker Service**: Consumes the task from the queue, downloads the original image from S3, executes the morphological transformation, and uploads the processed result back to S3. Finally, it updates the job status in Redis.
+5. **Status Polling**: The frontend periodically polls the API to monitor progress. Once the task is marked as completed, the API provides a presigned URL to securely download the result image.
+
+## Tech stack
+
+- **Frontend**: HTML5, CSS3, JavaScript, Nginx.
+- **Backend**: Python, Flask
+- **Message Broker**: RabbitMQ for asynchronous task queuing.
+- **State Store**: Redis for real-time job tracking and status storage.
+- **Object Storage**: MinIO (S3-compatible) for image persistence.
+- **Infrastructure**: Terraform (IaC) for bucket provisioning.
+
 ## Technical Decisions
 
-For job management, tasks are stored in Redis with a defined time-to-live (TTL). This allows asynchronous processing of potentially long-running operations without blocking the main application. The frontend periodically polls the backend to check the job status, implementing an exponential backoff strategy to reduce unnecessary network requests and server load.
+**Decoupled Processing**: Separating the API from the workers via RabbitMQ allows the system to handle traffic spikes and scale workers independently..
 
-On the frontend side, the user experience has been prioritized with drag-and-drop functionality, immediate file previews, and input validation for file type and size. This ensures that only appropriate images are submitted, reducing errors and server load.
+**S3 Presigned URLs**: Images are uploaded directly from the browser to object storage, reducing API load and avoiding large file transfers through Flask.
 
-Flask was chosen for the backend because of its lightweight nature and minimal overhead. 
+**Task Persistence**: Using Redis for job status allows for fast, non-blocking lookups during frontend polling.
 
-The project includes a GitHub Actions workflow that runs automated tests and checks test coverage on every push and pull request. This ensures code quality and reliability.
-
-The entire application is containerized using Docker, which guarantees a consistent environment.
+**Reliability**: A GitHub Actions workflow is integrated to run automated tests and check code coverage on every push.
 
 ## Running the Application
 
-To run this project, you need to have Docker installed. Launching the application is straightforward. Simply execute:
+### Prerequisites
+- Docker  
+- Docker Compose  
+- Terraform
 
-```
-docker-compose up -d
-```
 
-This command will start the containers for both the Flask web application and Redis. Once the containers are running, the web interface can be accessed at [http://localhost:8000](http://localhost:8000).
+### Setup
+
+1. Configure credentials in `infra/terraform.tfvars` for minIO:
+   ```hcl
+   minio_access_key = "YOUR_ACCESS_KEY"
+   minio_secret_key = "YOUR_SECRET_KEY"
+   ```
+
+2. Create a `.env` file in the project root and configure MinIO credentials:
+   ```env
+   MINIO_ROOT_USER=your_minio_user
+   MINIO_ROOT_PASSWORD=your_minio_password
+   ```
+
+3. Start the MinIO service:
+   ```bash
+   docker-compose up -d minio
+   ```
+
+4. Provision the bucket using Terraform:
+   ```bash
+   cd infra
+   terraform init
+   terraform apply
+   cd ..
+   ```
+
+5. Launch the full application:
+   ```bash
+   docker-compose up -d
+   ```
+Once running, the web interface will be available at: **http://localhost:8000**
 
 ## Using the Application
 
