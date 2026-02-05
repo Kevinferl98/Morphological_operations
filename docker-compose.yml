@@ -1,3 +1,9 @@
+x-common-env: &common-env
+    REDIS_URL: redis://redis:6379/0
+    RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+    MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+    MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+
 services:
   api-service:
     build: ./backend/api_service
@@ -5,63 +11,64 @@ services:
     ports: 
       - "8000:8000"
     environment:
+      <<: *common-env
       FLASK_ENV: dev
-      REDIS_URL: redis://redis:6379/0
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      rabbitmq: { condition: service_healthy }
+      redis: { condition: service_healthy}
+    networks:
+      - backend_net
 
   worker_service:
     build: ./backend/worker_service
     container_name: worker_service
     environment:
-      REDIS_URL: redis://redis:6379/0
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      <<: *common-env
       APP_ENV: development
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      rabbitmq: { condition: service_healthy }
+      redis: { condition: service_healthy}
+    networks:
+      - backend_net
 
   frontend:
     build: ./frontend
     container_name: frontend_nginx
     ports:
-      - "80:80"
+      - "8080:8080"
     depends_on:
       - api-service
+    networks:
+      - backend_net
     
   redis:
     image: redis:8.4.0-alpine
     container_name: redis
-    ports:
-      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5
-    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend_net
 
   rabbitmq:
     image: rabbitmq:4.2.2-management
     container_name: rabbitmq
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 5s
-      timeout: 3s
+      interval: 10s
+      timeout: 5s
       retries: 5
     ports:
       - "5672:5672"
       - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - backend_net
 
   minio:
     image: minio/minio:latest
@@ -75,6 +82,14 @@ services:
       - "9001:9001"
     volumes: 
       - minio_data:/data
+    networks:
+      - backend_net
+
+networks:
+  backend_net:
+    driver: bridge
 
 volumes:
   minio_data:
+  redis_data:
+  rabbitmq_data:

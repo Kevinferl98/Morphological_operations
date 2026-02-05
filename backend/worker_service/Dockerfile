@@ -1,8 +1,10 @@
 FROM python:3.14-slim
 
-WORKDIR /worker
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    OPENCV_VIDEOIO_PRIORITY_BACKEND=0
 
-COPY requirements.txt .
+WORKDIR /worker
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -12,12 +14,18 @@ RUN apt-get update && \
         libxrender1 \
         libxext6 \
         build-essential \
-    && pip install --no-cache-dir -r requirements.txt \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-COPY . .
+RUN addgroup --system workergroup && adduser --system --group workeruser
 
-ENV PYTHONUNBUFFERED=1
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+RUN chown -R workeruser:workergroup /worker
+
+USER workeruser
 
 CMD ["python", "-m", "worker.consumer"]
