@@ -86,9 +86,9 @@ The actual image processing is handled by a dedicated Worker service. This servi
 
 5. Launch the full application:
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
-Once running, the web interface will be available at: **http://localhost:8000**
+Once running, the web interface will be available at: **http://localhost:8080**
 
 ## Using the Application
 
