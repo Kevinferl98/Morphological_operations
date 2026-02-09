@@ -73,7 +73,7 @@ The actual image processing is handled by a dedicated Worker service. This servi
 
 3. Start the MinIO service:
    ```bash
-   docker-compose up -d minio
+   docker compose up -d minio
    ```
 
 4. Provision the bucket using Terraform:
