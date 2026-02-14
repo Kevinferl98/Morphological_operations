@@ -41,7 +41,7 @@ The actual image processing is handled by a dedicated Worker service. This servi
 
 ## Technical Decisions
 
-**Decoupled Processing**: Separating the API from the workers via RabbitMQ allows the system to handle traffic spikes and scale workers independently..
+**Decoupled Processing**: Separating the API from the workers via RabbitMQ allows the system to handle traffic spikes and scale workers independently.
 
 **S3 Presigned URLs**: Images are uploaded directly from the browser to object storage, reducing API load and avoiding large file transfers through Flask.
 
