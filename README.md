@@ -1,11 +1,11 @@
 # Morphological Operations Web App
 
-![Python](https://img.shields.io/badge/Python-3.14-blue?logo=python&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-Containerized-blue?logo=docker&logoColor=white)
-![Flask](https://img.shields.io/badge/Flask-API-black?logo=flask)
-![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Message%20Broker-orange?logo=rabbitmq)
-![Redis](https://img.shields.io/badge/Redis-In--Memory-red?logo=redis)
-![Terraform](https://img.shields.io/badge/Terraform-IaC-purple?logo=terraform)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
+![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white)
 
 A full-stack web application for applying morphological image processing operations through an intuitive browser-based interface.
 
