@@ -32,7 +32,7 @@ services:
       - backend_net
 
   frontend:
-    build: ./vue-frontend
+    build: ./frontend
     container_name: frontend_nginx
     ports:
       - "8080:8080"
