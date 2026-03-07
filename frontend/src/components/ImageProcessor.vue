@@ -94,7 +94,7 @@ function submit() {
             </div>
             
             <div class="select-wrapper">
-                <label>Structuring element:</label>
+                <label>Structuring element</label>
                 <select v-model="shape">
                     <option value="rect">Rectangle</option>
                     <option value="ellipse">Ellipse</option>
