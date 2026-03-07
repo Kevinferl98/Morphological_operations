@@ -2,6 +2,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
+![Vue.js](https://img.shields.io/badge/Vue.js-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)
 ![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
@@ -15,7 +16,7 @@ The application allows users to upload an image, configure the desired operation
 
 ## Architecture
 <p align="center">
-    <img src="Images/architecture.jpg" alt="Architecture" width="80%"/>
+    <img src="docs/architecture.jpg" alt="Architecture" width="80%"/>
 </p>
 
 The application is structured as a full-stack solution. The Frontend provides a responsive interface that uploads images directly to an S3 bucket using presigned URLs. A Flask API orchestrates the process by registering jobs in Redis and queuing tasks via RabbitMQ, decoupling user requests from heavy computation.
@@ -32,7 +33,7 @@ The actual image processing is handled by a dedicated Worker service. This servi
 
 ## Tech stack
 
-- **Frontend**: HTML5, CSS3, JavaScript, Nginx.
+- **Frontend**: Vue, TypeScript, Nginx.
 - **Backend**: Python, Flask
 - **Message Broker**: RabbitMQ for asynchronous task queuing.
 - **State Store**: Redis for real-time job tracking and status storage.
@@ -97,5 +98,5 @@ Start by dragging and dropping an image into the designated area or clicking to 
 This demo showcases contour extraction from a black-and-white image. By selecting the "Contour extraction" operation, the application highlights the contours of shapes present in the image.
 
 <p align="center">
-<img src="Images/contour_extraction.gif" alt="contour_extraction" width="80%"/>
+<img src="docs/contour_extraction.gif" alt="contour_extraction" width="80%"/>
 </p>
