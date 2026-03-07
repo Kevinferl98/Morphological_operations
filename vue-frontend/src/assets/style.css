@@ -103,10 +103,10 @@ button:hover {
   width: 80px;
   height: 80px;
   animation: spin 1s linear infinite;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: none;
 }
 
 @keyframes spin {
