@@ -14,8 +14,22 @@ permissions:
   contents: read
 
 jobs:
+  lint:
+    name: Static Analysis (Ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      - name: Install Linting Tools
+        run: pip install ruff
+      - name: Lint
+        run: ruff check backend
+
   test:
     name: Run tests
+    needs: lint
     runs-on: ubuntu-latest
 
     steps:
@@ -26,20 +40,30 @@ jobs:
         with:
           python-version: "3.14"
           cache: pip
-          cache-dependency-path: 'backend/**/requirements.txt'
+          cache-dependency-path: |
+            backend/api_service/requirements.txt
+            backend/worker_service/requirements.txt
                 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install ruff
           pip install --prefer-binary -r backend/api_service/requirements.txt
           pip install --prefer-binary -r backend/worker_service/requirements.txt
 
-      - name: Lint with Ruff
-        run: ruff check backend
-
-      - name: Run tests
+      - name: Run tests - api_service
         working-directory: backend
         run: |
-          echo "Running pytest with coverage..."
-          python -m pytest
+          echo "Running tests for api_service..."
+          python -m pytest api_service/tests \
+            --cov=api_service \
+            --cov-report=term-missing \
+            --cov-fail-under=80
+
+      - name: Run tests - worker_service
+        working-directory: backend
+        run: |
+          echo "Running tests for worker_service..."
+          python -m pytest worker_service/tests \
+            --cov=worker_service \
+            --cov-report=term-missing \
+            --cov-fail-under=80
