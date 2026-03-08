@@ -51,19 +51,19 @@ jobs:
           pip install --prefer-binary -r backend/worker_service/requirements.txt
 
       - name: Run tests - api_service
-        working-directory: backend
+        working-directory: backend/api_service
         run: |
           echo "Running tests for api_service..."
-          python -m pytest api_service/tests \
-            --cov=api_service \
+          python -m pytest tests \
+            --cov=app \
             --cov-report=term-missing \
             --cov-fail-under=80
 
       - name: Run tests - worker_service
-        working-directory: backend
+        working-directory: backend/worker_service
         run: |
           echo "Running tests for worker_service..."
-          python -m pytest worker_service/tests \
-            --cov=worker_service \
+          python -m pytest tests \
+            --cov=worker \
             --cov-report=term-missing \
             --cov-fail-under=80
