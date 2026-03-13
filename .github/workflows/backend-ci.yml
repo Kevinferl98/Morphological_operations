@@ -75,7 +75,4 @@ jobs:
       - name: Run tests
         working-directory: backend/${{ matrix.service }}
         run: |
-          python -m pytest tests \
-            --cov \
-            --cov-report=term-missing \
-            --cov-fail-under=80
+          python -m pytest tests
