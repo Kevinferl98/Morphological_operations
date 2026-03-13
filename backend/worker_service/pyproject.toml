@@ -1,0 +1,2 @@
+[tool.pytest.ini_options]
+addopts = "--cov=worker --cov-report=term-missing --cov-fail-under=80"
