@@ -27,7 +27,7 @@ def create_job(job_create: JobCreateRequest, job_service = Depends(get_job_servi
     except BadRequestError:
         raise
     except Exception as e:
-        logger.exception("failed to create job")
+        logger.exception("Failed to create job")
         raise BadRequestError(str(e))
 
 @router.get("/{job_id}", response_model=JobStatusResponse)
