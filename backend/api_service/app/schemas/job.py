@@ -22,3 +22,11 @@ class JobStatusResponse(BaseModel):
     status: str
     result_url: str
     message: str
+
+    @classmethod
+    def from_job(cls, job: dict):
+        return cls(
+            status=job["status"],
+            result_url=job.get("result_url") if job["status"] == "done" else None,
+            message=job.get("error") if job["status"] == "error" else None
+        )

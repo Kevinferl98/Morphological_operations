@@ -9,10 +9,10 @@ from app.exceptions import BadRequestError
 logger = logging.getLogger(__name__)
 
 class JobService:
-    def __init__(self):
-        self.redis = RedisClient()
-        self.publisher = RabbitMQPublisher()
-        self.minio_client = MinioClient()
+    def __init__(self, redis: RedisClient, publisher: RabbitMQPublisher, minio_client: MinioClient):
+        self.redis = redis
+        self.publisher = publisher
+        self.minio_client = minio_client
 
     def generate_upload_params(self, extensions="png"):
         filename = f"{uuid.uuid4()}.{extensions}"

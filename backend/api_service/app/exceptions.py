@@ -1,21 +1,17 @@
-class AppError(Exception):
-    status_code = 500
+from fastapi import HTTPException
 
-    def __init__(self, message=None):
-        super().__init__(message)
-        self.message = message or "Internal server error"
+class AppError(HTTPException):
+    def __init__(self, message="Internal server error", status_code=500):
+        super().__init__(status_code=status_code, detail=message)
 
 class ValidationError(AppError):
-    status_code = 422
     def __init__(self, message="Validation error"):
-        super().__init__(message)
+        super().__init__(message, status_code=422)
 
 class BadRequestError(AppError):
-    status_code = 400
     def __init__(self, message="Bad request"):
-        super().__init__(message)
+        super().__init__(message, status_code=400)
 
 class NotFoundError(AppError):
-    status_code = 404
     def __init__(self, message="Resource not found"):
-        super().__init__(message)
+        super().__init__(message, status_code=404)
