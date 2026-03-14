@@ -4,7 +4,7 @@ import json
 from app.services.redis_client import RedisClient
 from app.services.minio_client import MinioClient
 from app.services.rabbitmq_publisher import RabbitMQPublisher
-from app.exceptions import BadRequestError
+from app.exceptions import BadRequestError, NotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ class JobService:
         job_key = f"job:{job_id}"
         job_data_raw = self.redis.get_job(job_key)
         if not job_data_raw:
-            return None
+            raise NotFoundError(f"Job {job_id} not found")
         
         job_data = json.loads(job_data_raw)
 
