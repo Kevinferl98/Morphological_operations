@@ -1,7 +1,7 @@
 # Morphological Operations Web App
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 ![Vue.js](https://img.shields.io/badge/Vue.js-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)
 ![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
@@ -19,7 +19,7 @@ The application allows users to upload an image, configure the desired operation
     <img src="docs/architecture.jpg" alt="Architecture" width="80%"/>
 </p>
 
-The application is structured as a full-stack solution. The Frontend provides a responsive interface that uploads images directly to an S3 bucket using presigned URLs. A Flask API orchestrates the process by registering jobs in Redis and queuing tasks via RabbitMQ, decoupling user requests from heavy computation.
+The application is structured as a full-stack solution. The Frontend provides a responsive interface that uploads images directly to an S3 bucket using presigned URLs. A FastAPI API orchestrates the process by registering jobs in Redis and queuing tasks via RabbitMQ, decoupling user requests from heavy computation.
 
 The actual image processing is handled by a dedicated Worker service. This service consumes tasks from the queue, processes the images from S3, uploads the results back to S3, and updates the final job status in Redis for the frontend to poll.
 
@@ -34,7 +34,7 @@ The actual image processing is handled by a dedicated Worker service. This servi
 ## Tech stack
 
 - **Frontend**: Vue, TypeScript, Nginx.
-- **Backend**: Python, Flask
+- **Backend**: Python, FastAPI
 - **Message Broker**: RabbitMQ for asynchronous task queuing.
 - **State Store**: Redis for real-time job tracking and status storage.
 - **Object Storage**: MinIO (S3-compatible) for image persistence.
@@ -44,7 +44,7 @@ The actual image processing is handled by a dedicated Worker service. This servi
 
 **Decoupled Processing**: Separating the API from the workers via RabbitMQ allows the system to handle traffic spikes and scale workers independently.
 
-**S3 Presigned URLs**: Images are uploaded directly from the browser to object storage, reducing API load and avoiding large file transfers through Flask.
+**S3 Presigned URLs**: Images are uploaded directly from the browser to object storage, reducing API load and avoiding large file transfers through FastAPI.
 
 **Task Persistence**: Using Redis for job status allows for fast, non-blocking lookups during frontend polling.
 
