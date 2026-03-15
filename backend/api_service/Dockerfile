@@ -1,8 +1,7 @@
 FROM python:3.14.2-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    FLASK_ENV=dev
+    PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
@@ -21,4 +20,4 @@ USER appuser
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--workers=3", "--bind=0.0.0.0:8000", "--access-logfile", "-", "run:app"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

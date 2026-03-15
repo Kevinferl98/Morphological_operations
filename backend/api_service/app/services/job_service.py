@@ -4,17 +4,17 @@ import json
 from app.services.redis_client import RedisClient
 from app.services.minio_client import MinioClient
 from app.services.rabbitmq_publisher import RabbitMQPublisher
-from app.exceptions import BadRequestError
+from app.exceptions import BadRequestError, NotFoundError
 
 logger = logging.getLogger(__name__)
 
 class JobService:
-    def __init__(self):
-        self.redis = RedisClient()
-        self.publisher = RabbitMQPublisher()
-        self.minio_client = MinioClient()
+    def __init__(self, redis: RedisClient, publisher: RabbitMQPublisher, minio_client: MinioClient):
+        self.redis = redis
+        self.publisher = publisher
+        self.minio_client = minio_client
 
-    def generate_upload_params(self, extensions="png"):
+    def generate_upload_params(self, extensions: str = "png"):
         filename = f"{uuid.uuid4()}.{extensions}"
         url = self.minio_client.generate_presigned_upload_url(filename)
         return url, filename
@@ -31,7 +31,7 @@ class JobService:
         job_data = {
             "status": "pending",
             "image_key": image_key,
-            "params": params,
+            "params": params.model_dump(),
             "result": None,
             "error": None
         }
@@ -46,7 +46,7 @@ class JobService:
         job_key = f"job:{job_id}"
         job_data_raw = self.redis.get_job(job_key)
         if not job_data_raw:
-            return None
+            raise NotFoundError(f"Job {job_id} not found")
         
         job_data = json.loads(job_data_raw)
 

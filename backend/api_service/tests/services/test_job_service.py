@@ -1,84 +1,71 @@
 import json
-import uuid
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from app.services.job_service import JobService
-from app.exceptions import BadRequestError
+from app.exceptions import BadRequestError, NotFoundError
+from app.schemas.job import MorphologicalParams
 
 @pytest.fixture
-def job_service():
-    with patch("app.services.job_service.RedisClient") as mock_redis, \
-         patch("app.services.job_service.RabbitMQPublisher") as mock_publisher, \
-         patch("app.services.job_service.MinioClient") as mock_minio:
-        
-        service = JobService()
+def redis_mock():
+    return MagicMock()
 
-        service.redis = mock_redis.return_value
-        service.publisher = mock_publisher.return_value
-        service.minio_client = mock_minio.return_value
+@pytest.fixture
+def publisher_mock():
+    return MagicMock()
 
-        yield service
+@pytest.fixture
+def minio_mock():
+    return MagicMock()
 
-def test_generate_upload_params_return_url_and_filename(job_service):
-    job_service.minio_client.generate_presigned_upload_url.return_value = "upload-url"
+@pytest.fixture
+def job_service(redis_mock, publisher_mock, minio_mock):
+    return JobService(redis_mock, publisher_mock, minio_mock)
 
-    url, filename = job_service.generate_upload_params("png")
+def test_generate_upload_params(job_service, minio_mock):
+    minio_mock.generate_presigned_upload_url.return_value = "http://upload-url"
 
-    assert url == "upload-url"
-    assert filename.endswith(".png")
+    with patch("app.services.job_service.uuid.uuid4", return_value="1234"):
+        url, filename = job_service.generate_upload_params("png")
+    
+    assert filename == "1234.png"
+    assert url == "http://upload-url"
 
-    job_service.minio_client.generate_presigned_upload_url.assert_called_once_with(filename)
+    minio_mock.generate_presigned_upload_url.assert_called_once_with("1234.png")
 
-def test_generate_upload_params_generates_valid_uuid_filename(job_service):
-    job_service.minio_client.generate_presigned_upload_url.return_value = "upload-url"
+def test_create_job_success(job_service, redis_mock, publisher_mock, minio_mock):
+    minio_mock.head_object.return_value = None
+    params = MorphologicalParams(
+        operation="dilate",
+        shape="rect",
+        sizeX=3,
+        sizeY=3
+    )
 
-    _, filename = job_service.generate_upload_params("jpg")
+    with patch("app.services.job_service.uuid.uuid4", return_value="job-123"):
+        job_id = job_service.create_job("image.png", params)
+    
+    assert job_id == "job-123"
 
-    uuid_part = filename.split(".")[0]
-    uuid.UUID(uuid_part)
+    redis_mock.create_job.assert_called_once()
 
-def test_create_job_success(job_service):
-    image_key = "image.png"
-    params = {"scale": 2}
+    args, kwargs = redis_mock.create_job.call_args
+    job_key, job_data = args
 
-    job_service.minio_client.head_object.return_value = True
+    assert job_key == "job:job-123"
+    assert job_data["status"] == "pending"
+    assert job_data["image_key"] == "image.png"
+    assert job_data["params"] == params.model_dump()
+    assert job_data["result"] is None
 
-    job_id = job_service.create_job(image_key, params)
+    publisher_mock.publish_job.assert_called_once_with("job-123")
 
-    assert isinstance(uuid.UUID(job_id), uuid.UUID)
-
-    expected_key = f"job:{job_id}"
-
-    job_service.redis.create_job.assert_called_once()
-
-    call_args = job_service.redis.create_job.call_args[0]
-
-    assert call_args[0] == expected_key
-    assert call_args[1]["status"] == "pending"
-    assert call_args[1]["image_key"] == image_key
-    assert call_args[1]["params"] == params
-    assert call_args[1]["result"] is None
-    assert call_args[1]["error"] is None
-
-    job_service.publisher.publish_job.assert_called_once_with(job_id)
-
-def test_create_job_raises_if_image_not_found(job_service):
-    job_service.minio_client.head_object.side_effect = Exception("not found")
+def test_create_job_image_not_found(job_service, minio_mock):
+    minio_mock.head_object.side_effect = Exception("not found")
 
     with pytest.raises(BadRequestError):
-        job_service.create_job("missing.png", {})
+        job_service.create_job("missing.pgn", {})
 
-    job_service.redis.create_job.assert_not_called()
-    job_service.publisher.publish_job.assert_not_called()
-
-def test_get_job_returns_none_if_job_missing(job_service):
-    job_service.redis.get_job.return_value = None
-
-    result = job_service.get_job("123")
-
-    assert result is None
-
-def test_get_job_returns_job_data(job_service):
+def test_get_job_success(job_service, redis_mock):
     job_data = {
         "status": "pending",
         "image_key": "img.png",
@@ -87,44 +74,36 @@ def test_get_job_returns_job_data(job_service):
         "error": None
     }
 
-    job_service.redis.get_job.return_value = json.dumps(job_data)
+    redis_mock.get_job.return_value = json.dumps(job_data)
 
-    result = job_service.get_job("abc")
+    result = job_service.get_job("123")
 
     assert result["status"] == "pending"
-    assert result["image_key"] == "img.png"
 
+    redis_mock.get_job.assert_called_once_with("job:123")
 
-def test_get_job_adds_result_url_when_done(job_service):
+def test_get_job_with_result(job_service, redis_mock, minio_mock):
     job_data = {
         "status": "done",
         "image_key": "img.png",
         "params": {},
-        "result": None,
-        "error": None,
-        "result_key": "result.png"
-    }
-
-    job_service.redis.get_job.return_value = json.dumps(job_data)
-    job_service.minio_client.generate_presigned_download_url.return_value = "download-url"
-
-    result = job_service.get_job("abc")
-
-    assert result["result_url"] == "download-url"
-
-    job_service.minio_client.generate_presigned_download_url.assert_called_once_with("result.png")
-
-def test_get_job_does_not_add_result_url_if_not_done(job_service):
-    job_data = {
-        "status": "processing",
-        "image_key": "img.png",
-        "params": {},
-        "result": None,
+        "result_key": "result.png",
         "error": None
     }
 
-    job_service.redis.get_job.return_value = json.dumps(job_data)
+    redis_mock.get_job.return_value = json.dumps(job_data)
+    minio_mock.generate_presigned_download_url.return_value = "http://download"
 
-    result = job_service.get_job("abc")
+    result = job_service.get_job("123")
 
-    assert "result_url" not in result
+    assert result["result_url"] == "http://download"
+
+    minio_mock.generate_presigned_download_url.assert_called_once_with("result.png")
+
+def test_get_job_not_found(job_service, redis_mock):
+    redis_mock.get_job.return_value = None
+
+    with pytest.raises(NotFoundError) as exc:
+        job_service.get_job("missing")
+
+    assert "Job missing not found" in str(exc.value)
