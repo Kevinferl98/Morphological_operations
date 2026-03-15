@@ -31,7 +31,7 @@ class JobService:
         job_data = {
             "status": "pending",
             "image_key": image_key,
-            "params": params,
+            "params": params.model_dump(),
             "result": None,
             "error": None
         }

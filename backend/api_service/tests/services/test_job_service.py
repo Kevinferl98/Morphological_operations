@@ -3,6 +3,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from app.services.job_service import JobService
 from app.exceptions import BadRequestError, NotFoundError
+from app.schemas.job import MorphologicalParams
 
 @pytest.fixture
 def redis_mock():
@@ -33,12 +34,12 @@ def test_generate_upload_params(job_service, minio_mock):
 
 def test_create_job_success(job_service, redis_mock, publisher_mock, minio_mock):
     minio_mock.head_object.return_value = None
-    params = {
-        "operation": "dilate",
-        "shape": "rect",
-        "sizeX": 3,
-        "sizeY": 3
-    }
+    params = MorphologicalParams(
+        operation="dilate",
+        shape="rect",
+        sizeX=3,
+        sizeY=3
+    )
 
     with patch("app.services.job_service.uuid.uuid4", return_value="job-123"):
         job_id = job_service.create_job("image.png", params)
@@ -53,7 +54,7 @@ def test_create_job_success(job_service, redis_mock, publisher_mock, minio_mock)
     assert job_key == "job:job-123"
     assert job_data["status"] == "pending"
     assert job_data["image_key"] == "image.png"
-    assert job_data["params"] == params
+    assert job_data["params"] == params.model_dump()
     assert job_data["result"] is None
 
     publisher_mock.publish_job.assert_called_once_with("job-123")

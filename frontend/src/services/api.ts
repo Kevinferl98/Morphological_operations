@@ -1,7 +1,7 @@
 import { API_BASE_URL } from "../constants/config"
 
 export async function getUploadUrl() {
-    const res = await fetch(`${API_BASE_URL}/upload-url`)
+    const res = await fetch(`${API_BASE_URL}/jobs/upload_url`)
 
     if (!res.ok) {
         throw new Error("Failed to get upload URL")
@@ -11,7 +11,7 @@ export async function getUploadUrl() {
 }
 
 export async function createJob(payload: any) {
-    const res = await fetch(`${API_BASE_URL}/jobs`, {
+    const res = await fetch(`${API_BASE_URL}/jobs/`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"

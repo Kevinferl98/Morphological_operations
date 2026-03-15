@@ -12,7 +12,6 @@ services:
       - "8000:8000"
     environment:
       <<: *common-env
-      FLASK_ENV: dev
     depends_on:
       rabbitmq: { condition: service_healthy }
       redis: { condition: service_healthy}
