@@ -14,7 +14,7 @@ class JobService:
         self.publisher = publisher
         self.minio_client = minio_client
 
-    def generate_upload_params(self, extensions="png"):
+    def generate_upload_params(self, extensions: str = "png"):
         filename = f"{uuid.uuid4()}.{extensions}"
         url = self.minio_client.generate_presigned_upload_url(filename)
         return url, filename
