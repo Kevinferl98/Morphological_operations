@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Literal
+from typing import Literal, Optional
 
 class UploadUrlResponse(BaseModel):
     upload_url: str
@@ -20,8 +20,8 @@ class JobCreateResponse(BaseModel):
 
 class JobStatusResponse(BaseModel):
     status: str
-    result_url: str
-    message: str
+    result_url: Optional[str] = None
+    message: Optional[str] = None
 
     @classmethod
     def from_job(cls, job: dict):
