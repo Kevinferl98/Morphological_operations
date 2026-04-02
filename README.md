@@ -31,7 +31,7 @@ The actual image processing is handled by a dedicated Worker service. This servi
 4. **Worker Service**: Consumes the task from the queue, downloads the original image from S3, executes the morphological transformation, and uploads the processed result back to S3. Finally, it updates the job status in Redis.
 5. **Status Polling**: The frontend periodically polls the API to monitor progress. Once the task is marked as completed, the API provides a presigned URL to securely download the result image.
 
-## Tech stack
+## Tech Stack
 
 - **Frontend**: Vue, TypeScript, Nginx.
 - **Backend**: Python, FastAPI
