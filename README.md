@@ -60,7 +60,7 @@ The actual image processing is handled by a dedicated Worker service. This servi
 
 ### Setup
 
-1. Configure credentials in `infra/terraform.tfvars` for minIO:
+1. Configure credentials in `infra/terraform.tfvars` for MinIO:
    ```hcl
    minio_access_key = "YOUR_ACCESS_KEY"
    minio_secret_key = "YOUR_SECRET_KEY"
