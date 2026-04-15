@@ -16,7 +16,7 @@ The application allows users to upload an image, configure the desired operation
 
 ## Architecture
 <p align="center">
-    <img src="docs/architecture.jpg" alt="Architecture" width="80%"/>
+    <img src="docs/architecture.svg" alt="Architecture" width="80%"/>
 </p>
 
 The application is structured as a full-stack solution. The Frontend provides a responsive interface that uploads images directly to an S3 bucket using presigned URLs. A FastAPI API orchestrates the process by registering jobs in Redis and queuing tasks via RabbitMQ, decoupling user requests from heavy computation.
